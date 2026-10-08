@@ -266,8 +266,18 @@ ul.tight li{margin:2px 0}
 .man-ic{flex:0 0 24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;background:var(--hp-blue-tint);color:var(--hp-blue-800)}
 .man-slot.done .man-ic{background:#dff2e7;color:#12734a}
 .man-t{font-weight:700;color:var(--navy);font-size:13px}
-.man-f{font-size:11.5px;color:var(--grey);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:300px}
+.man-f{font-size:11.5px;color:var(--grey);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:420px;line-height:1.55}
 .man-slot.done .man-f{color:#12734a;font-weight:600}
+.man-slot.have{border-style:solid;border-color:#c8d6e8;background:#fbfdff}
+.man-slot.aop{flex-wrap:wrap}
+.man-ab{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.man-req{font-size:9.5px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:#a3191b;background:#fdecec;border-radius:4px;padding:1px 5px;margin-left:4px;vertical-align:1px}
+.man-req.opt{color:#5b6675;background:#eef2f7}
+.man-f b.pk{color:#a05a00}
+.dsb{display:inline-block;font-size:10.5px;font-weight:750;border-radius:10px;padding:0 7px;line-height:16px}
+.dsb.ok{background:#dff2e7;color:#12734a}
+.dsb.bad{background:#fde2e0;color:#a3191b}
+.dsb.na{background:#eef2f7;color:#5b6675}
 .man-btns{display:flex;gap:8px;justify-content:center;margin-top:10px;flex-wrap:wrap}
 .man-btns .btn[disabled]{opacity:.5;cursor:not-allowed}
 .man-n{font-size:11px;color:var(--grey);text-align:center;margin-top:9px;line-height:1.5}
@@ -393,13 +403,14 @@ ul.tight li{margin:2px 0}
         <li id="ld-s0"><span class="ic"></span><span class="tx">Loading FY 2025-26&hellip;</span><span class="meta"></span></li>
         <li id="ld-s1"><span class="ic"></span><span class="tx">Loading FY 2026-27&hellip;</span><span class="meta"></span></li>
         <li id="ld-s2"><span class="ic"></span><span class="tx">Processing sales data&hellip;</span><span class="meta"></span></li>
-        <li id="ld-s3"><span class="ic"></span><span class="tx">Building dashboard&hellip;</span><span class="meta"></span></li>
+        <li id="ld-s3"><span class="ic"></span><span class="tx">AOP targets (optional)&hellip;</span><span class="meta"></span></li>
+        <li id="ld-s4"><span class="ic"></span><span class="tx">Building dashboard&hellip;</span><span class="meta"></span></li>
       </ul>
       <div id="ld-err" class="ld-err hide"></div>
       <div id="ld-retry" class="hide" style="margin-top:12px;text-align:center"><button class="btn pri" id="ld-retry-btn">&#8635; Try Repository Again</button></div>
       <div id="ld-choice" class="ld-choice"><span>Data source: <b style="color:var(--hp-blue-800)">GitHub repository</b> (automatic)</span><span>&middot;</span><button class="btn sm" id="ld-manual-btn">Upload Excel files manually</button></div>
       <div id="ld-manual" class="man-wrap hide"><div class="man-or">&mdash; OR &mdash;</div><div id="ld-manual-host"></div></div>
-      <div style="margin-top:12px;font-size:11px;color:var(--grey);text-align:center;line-height:1.5">Source: <code>data/FY_2025-26.xlsx</code> &amp; <code>data/FY_2026-27.xlsx</code> in this repository &bull; processed in your browser</div>
+      <div style="margin-top:12px;font-size:11px;color:var(--grey);text-align:center;line-height:1.5">Source: <code>data/FY_2025-26.xlsx</code> &amp; <code>data/FY_2026-27.xlsx</code> (+ optional <code>data/AOP_2026-27.xlsx</code>) in this repository &bull; processed in your browser</div>
     </div>
   </div>
 </section>
@@ -574,18 +585,19 @@ ul.tight li{margin:2px 0}
 <section class="page" id="pg-dq">
   <div class="card">
     <div class="card-h"><h3>Data Source</h3><span class="hint">Read fresh from the repository on every page load &mdash; the Excel files are never modified</span>
-      <div class="tools"><button class="btn sm pri" id="repo-reload">&#8635; Reload Repository Data</button><button class="btn sm" id="repo-manual">&#128228; Manual Data Upload</button></div>
+      <div class="tools"><button class="btn sm pri" id="repo-reload">&#8635; Reload Repository Data</button><button class="btn sm" id="repo-manual">&#128228; Manual Data Upload / AOP</button></div>
     </div>
     <div class="card-b">
       <div class="tw"><table class="repo-st" id="repo-status"></table></div>
       <div class="note" style="margin:14px 0 0">To update the dashboard, replace <code>data/FY_2026-27.xlsx</code> in the repository with the new extract (same file name). Every page load &mdash; or <b>Reload Repository Data</b> &mdash; fetches both files again with a cache-busting timestamp, so the newest file is always used; sales data is never restored from browser storage. The default To Date follows the latest billing date in the current-year file.</div>
       <div class="dz2" id="dz-aop" style="margin-top:14px">
         <div class="badge">AOP targets &bull; optional</div><h3>AOP Target File &mdash; FY 2026-27</h3>
-        <div class="s">Annual AOP by Sales Area and product (MS, HSD, Power Vol, POWER CON %, CNG+CBG, Lube, DEF, SKO). Read in this browser and stored on this machine only &mdash; never uploaded. Needed only for the AOP comparison tables.</div>
-        <button class="btn" data-aop="pick">Choose Excel File</button>
-        <button class="btn" data-aop="pick" data-aop-replace="1">Replace AOP File</button>
+        <div class="s">Repository file <code>data/AOP_2026-27.xlsx</code> (optional), or a manual upload that overrides it for this session. Annual AOP by Sales Area and product (MS, HSD, Power Vol, POWER CON %, CNG+CBG, Lube, DEF, SKO). The dashboard works fully without it.</div>
+        <div id="aop-src-st" style="margin:6px 0 10px"></div>
+        <button class="btn" data-aop="repo">Load Repository AOP</button>
+        <button class="btn pri" data-aop="pick" id="aop-up-btn">Upload AOP Manually</button>
         <button class="btn" data-aop="clear">Clear AOP</button>
-        <input type="file" id="up-aop" accept=".xlsx,.xls,.xlsm" hidden>
+        <input type="file" id="up-aop" accept=".xlsx,.XLSX,.xls,.XLS,.xlsm" hidden>
         <div class="fn" id="fn-aop"></div>
       </div>
     </div>
@@ -655,13 +667,13 @@ ul.tight li{margin:2px 0}
   <div class="modal-b" id="mo-b"></div>
 </div></div>
 
-<div class="modal" id="ds-modal"><div class="modal-box ds-box">
-  <div class="modal-h"><div><h3>Data Source</h3><div class="sub">Where the two financial-year Excel files come from</div></div>
+<div class="modal" id="ds-modal"><div class="modal-box ds-box" style="max-width:720px">
+  <div class="modal-h"><div><h3>Data Source</h3><div class="sub">Where the Historical FY, Current FY and AOP Excel files come from</div></div>
     <div class="tools"><button class="x" id="ds-x">&times;</button></div></div>
   <div class="modal-b">
-    <div class="ds-sec"><h4>Current source</h4><div id="ds-cur"></div>
+    <div class="ds-sec"><h4>Current source &mdash; file in use</h4><div id="ds-cur"></div>
       <div class="man-btns" style="justify-content:flex-start"><button class="btn pri" id="ds-repo">&#8635; Reload Repository Data</button></div>
-      <div class="man-n" style="text-align:left">Repository files next to this page &mdash; Historical: <code>data/FY_2025-26.xlsx</code> &middot; Current: <code>data/FY_2026-27.xlsx</code> &mdash; fetched fresh (cache-busted) each time.</div></div>
+      <div class="man-n" style="text-align:left">Repository files next to this page &mdash; Historical: <code>data/FY_2025-26.xlsx</code> &middot; Current: <code>data/FY_2026-27.xlsx</code> &middot; AOP (optional): <code>data/AOP_2026-27.xlsx</code> &mdash; fetched fresh (cache-busted) each time. Reload replaces manual FY files with the repository files; a manual AOP stays in use.</div></div>
     <div class="ds-sec"><div id="ds-manual-host"></div></div>
   </div>
 </div></div>
@@ -1209,8 +1221,241 @@ function specToSheetData(spec){
   return { aoa:aoa, merges:merges, widths:widths, off:off, nHead:nHead, grid:grid, ncol:(grid[0]||[]).length };
 }
 
+/* =====================================================================
+   STYLED XLSX WRITER (self-contained, runs in the browser, no server)
+   SheetJS Community Edition can write values but not cell styles, so the
+   workbook XML is generated here and zipped with SheetJS's bundled CFB
+   zip (deflate).  Every Excel button goes through downloadSpecXLSX /
+   downloadMultiXLSX → writeStyledXLSX(specs).  What it produces:
+     • title / subtitle / filter lines above the table
+     • multi-row headers with merges: group rows HPCL navy + white bold,
+       column-header row in the dashboard's band colour, bold, centred, wrapped
+     • numbers stay numeric with the dashboard formats (1,243.00 · 5.74% ·
+       2.12 pp); % columns keep the dashboard's value (5.74 = 5.74%) so an
+       Excel number filter "greater than 20" means 20%
+     • green / red cells exactly where the dashboard shows them (pos / neg),
+       total / sub-total rows highlighted, DQ ok/warn/bad colours
+     • thin borders, sensible column widths, AutoFilter on the column-header
+       row, frozen header rows + identity columns
+   ===================================================================== */
+var XW_BAND = { 'b-yellow':'FFEE9C', 'b-orange':'FBDFB8', 'b-green':'D5EEDE', 'b-grey':'DDE3EA',
+                'b-blue':'D6E5F6', 'b-apr':'C9EBEF', 'b-white':'FFFFFF' };
+var XW_NAVY='003876', XW_BORDER='B7C2D0';
+function xwEsc(s){
+  return String(s).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\uFFFE\uFFFF]/g,'')
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function xwCol(c){ var s=''; c++; while(c>0){ var m=(c-1)%26; s=String.fromCharCode(65+m)+s; c=Math.floor((c-1)/26); } return s; }
+function xwRef(r,c){ return xwCol(c)+(r+1); }
+/* style registry: one cellXfs entry per distinct look */
+function XwStyles(){
+  this.fonts=['<font><sz val="10"/><name val="Calibri"/><family val="2"/></font>']; this.fontIx={};
+  this.fills=['<fill><patternFill patternType="none"/></fill>','<fill><patternFill patternType="gray125"/></fill>']; this.fillIx={};
+  this.borders=['<border><left/><right/><top/><bottom/><diagonal/></border>']; this.borderIx={};
+  this.numFmts=[]; this.fmtIx={}; this.xfs=['<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>']; this.xfIx={};
+}
+XwStyles.prototype.font=function(f){
+  var x='<font>'+(f.b?'<b/>':'')+(f.i?'<i/>':'')+'<sz val="'+(f.sz||10)+'"/>'+(f.color?'<color rgb="FF'+f.color+'"/>':'')+'<name val="Calibri"/><family val="2"/></font>';
+  if (this.fontIx[x]===undefined){ this.fontIx[x]=this.fonts.length; this.fonts.push(x); } return this.fontIx[x];
+};
+XwStyles.prototype.fill=function(rgb){
+  if (!rgb) return 0;
+  var x='<fill><patternFill patternType="solid"><fgColor rgb="FF'+rgb+'"/><bgColor indexed="64"/></patternFill></fill>';
+  if (this.fillIx[x]===undefined){ this.fillIx[x]=this.fills.length; this.fills.push(x); } return this.fillIx[x];
+};
+XwStyles.prototype.border=function(kind){
+  if (!kind) return 0;
+  var t=function(side, st, col){ return '<'+side+' style="'+st+'"><color rgb="FF'+col+'"/></'+side+'>'; };
+  var x = kind==='thick-top'
+    ? '<border>'+t('left','thin',XW_BORDER)+t('right','thin',XW_BORDER)+t('top','medium','6F7F95')+t('bottom','thin',XW_BORDER)+'<diagonal/></border>'
+    : kind==='head'
+    ? '<border>'+t('left','thin','8EA2BD')+t('right','thin','8EA2BD')+t('top','thin','8EA2BD')+t('bottom','thin','8EA2BD')+'<diagonal/></border>'
+    : '<border>'+t('left','thin',XW_BORDER)+t('right','thin',XW_BORDER)+t('top','thin',XW_BORDER)+t('bottom','thin',XW_BORDER)+'<diagonal/></border>';
+  if (this.borderIx[x]===undefined){ this.borderIx[x]=this.borders.length; this.borders.push(x); } return this.borderIx[x];
+};
+XwStyles.prototype.fmt=function(code){
+  if (!code) return 0;
+  if (this.fmtIx[code]===undefined){ var id=164+this.numFmts.length; this.fmtIx[code]=id; this.numFmts.push('<numFmt numFmtId="'+id+'" formatCode="'+xwEsc(code)+'"/>'); }
+  return this.fmtIx[code];
+};
+XwStyles.prototype.xf=function(o){
+  var key=JSON.stringify(o);
+  if (this.xfIx[key]!==undefined) return this.xfIx[key];
+  var f=this.font(o.font||{}), fl=this.fill(o.fill), b=this.border(o.border), n=this.fmt(o.fmt);
+  var al = (o.h||o.v||o.wrap) ? '<alignment'+(o.h?' horizontal="'+o.h+'"':'')+(o.v?' vertical="'+o.v+'"':'')+(o.wrap?' wrapText="1"':'')+'/>' : '';
+  var x='<xf numFmtId="'+n+'" fontId="'+f+'" fillId="'+fl+'" borderId="'+b+'" xfId="0"'+(n?' applyNumberFormat="1"':'')+' applyFont="1"'+(fl?' applyFill="1"':'')+(b?' applyBorder="1"':'')+(al?' applyAlignment="1">'+al+'</xf>':'/>');
+  this.xfIx[key]=this.xfs.length; this.xfs.push(x); return this.xfIx[key];
+};
+XwStyles.prototype.xml=function(){
+  return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'+
+    (this.numFmts.length?'<numFmts count="'+this.numFmts.length+'">'+this.numFmts.join('')+'</numFmts>':'')+
+    '<fonts count="'+this.fonts.length+'">'+this.fonts.join('')+'</fonts>'+
+    '<fills count="'+this.fills.length+'">'+this.fills.join('')+'</fills>'+
+    '<borders count="'+this.borders.length+'">'+this.borders.join('')+'</borders>'+
+    '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>'+
+    '<cellXfs count="'+this.xfs.length+'">'+this.xfs.join('')+'</cellXfs>'+
+    '<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>';
+};
+function xwNumFmt(cell){
+  var dec=cell.dec===undefined?2:cell.dec;
+  var base = dec===0 ? '#,##0' : '#,##0.'+new Array(dec+1).join('0');
+  return cell.pct ? base+'"%"' : cell.pp ? base+'" pp"' : base;
+}
+function xwHas(cls, k){ return (' '+(cls||'')+' ').indexOf(' '+k+' ')>=0; }
+function xwBand(cls){ var m=String(cls||'').match(/\bb-(yellow|orange|green|grey|blue|apr|white)\b/); return m?XW_BAND['b-'+m[1]]:null; }
+function xwText(cell){
+  var t = cell.t===undefined||cell.t===null ? '' : String(cell.t);
+  return t.replace(/\s*[\u25B2\u25BC]\s*$/,'');          // drop the on-screen sort arrow
+}
+/* one worksheet from one table spec */
+function xwSheet(spec, S, sheetName){
+  var d = specToSheetData(spec);
+  var grid=d.grid, nHead=d.nHead, off=d.off, ncol=Math.max(1,d.ncol), body=spec.body||[];
+  var rowsXml=[], widths=[], merges=[];
+  var cellsByRow={};                                       // r -> array of xml (sparse by column)
+  var put=function(r,c,xml){ (cellsByRow[r]=cellsByRow[r]||[])[c]=xml; };
+  var strCell=function(r,c,txt,s){ put(r,c,'<c r="'+xwRef(r,c)+'" s="'+s+'" t="inlineStr"><is><t xml:space="preserve">'+xwEsc(txt)+'</t></is></c>'); };
+  var numCell=function(r,c,v,s){ put(r,c,'<c r="'+xwRef(r,c)+'" s="'+s+'"><v>'+v+'</v></c>'); };
+  var blank=function(r,c,s){ put(r,c,'<c r="'+xwRef(r,c)+'" s="'+s+'"/>'); };
+  var wid=function(c,len){ widths[c]=Math.max(widths[c]||0, len); };
+  /* title block */
+  var sTitle=S.xf({font:{b:true,sz:14,color:XW_NAVY}}), sSub=S.xf({font:{b:true,sz:10,color:'1F2A37'}}), sMeta=S.xf({font:{i:true,sz:9,color:'5B6675'}});
+  var pr=0;
+  strCell(pr++,0,spec.title||'DSM Sales Dashboard',sTitle);
+  if (spec.subtitle) strCell(pr++,0,spec.subtitle,sSub);
+  (spec.meta||[]).forEach(function(m){ strCell(pr++,0,m,sMeta); });
+  /* header rows */
+  var headStyle=function(cell, r){
+    var group = nHead>1 && r<nHead-1 && !(cell._merge && cell._merge.rs>1 && r+cell._merge.rs>=nHead);
+    if (nHead===1 || group) return S.xf({font:{b:true,sz:10,color:'FFFFFF'},fill:XW_NAVY,border:'head',h:'center',v:'center',wrap:true});
+    return S.xf({font:{b:true,sz:10,color:'0B1F3A'},fill:xwBand(cell.cls)||XW_BAND['b-yellow'],border:'head',h:'center',v:'center',wrap:true});
+  };
+  var styled={};                                            // "r,c" filled by a merge
+  for (var r=0;r<nHead;r++){
+    for (var c=0;c<ncol;c++){
+      var cell=grid[r][c]; if (!cell) continue;
+      var s=headStyle(cell,r), txt=xwText(cell), R=r+off;
+      strCell(R,c,txt,s);
+      if (cell._merge){
+        var m=cell._merge;
+        merges.push(xwRef(m.r+off,m.c)+':'+xwRef(m.r+m.rs-1+off,m.c+m.cs-1));
+        for (var i=0;i<m.rs;i++) for (var j=0;j<m.cs;j++) if (i||j){ blank(m.r+i+off,m.c+j,s); styled[(m.r+i)+','+(m.c+j)]=1; }
+        if (m.cs===1) wid(c, Math.min(18, txt.length*0.9+2));
+      } else wid(c, Math.min(18, txt.length*0.9+2));        // headers wrap, so they only nudge the width
+    }
+  }
+  /* body rows */
+  var numCols={}, freezeCols=0;
+  var last=grid[nHead-1]||[];
+  for (var fc=0; fc<ncol && last[fc] && /\bfz\d\b|\bfz\b/.test(last[fc].cls||''); fc++) freezeCols=fc+1;
+  for (var br=0; br<body.length; br++){
+    var rr=nHead+br, R2=rr+off, row=body[br]||{}, rc=row.cls||'';
+    var tot=xwHas(rc,'tot')||xwHas(rc,'reg'), sub=xwHas(rc,'sub');
+    for (var c2=0;c2<ncol;c2++){
+      var cl=grid[rr]?grid[rr][c2]:undefined;
+      if (cl===undefined){ if (!styled[rr+','+c2]) continue; else continue; }
+      if (!cl) continue;
+      var cls=cl.cls||'', isNum=(cl.v!==undefined);
+      var o={border: tot?'thick-top':'thin', font:{sz:10}, v:'center'};
+      if (tot){ o.font.b=true; o.fill='FFF8C9'; } else if (sub){ o.font.b=true; o.fill='EEF2F7'; }
+      var band=xwBand(cls); if (band && band!=='FFFFFF') o.fill=band;
+      var perf = cl.html && String(cl.html).match(/class="perf (sg|g|md|sd|nd)"/);
+      if (xwHas(cls,'pos') || (perf && (perf[1]==='sg'||perf[1]==='g'))){ o.fill= perf&&perf[1]==='sg'?'C8ECD7':'D6EFE0'; o.font.color='0D5A30'; o.font.b=true; }
+      else if (xwHas(cls,'neg') || (perf && (perf[1]==='md'||perf[1]==='sd'))){ o.fill= perf&&perf[1]==='sd'?'F9C8C3':'FBDAD7'; o.font.color='8E1B15'; o.font.b=true; }
+      else if (perf && perf[1]==='nd'){ o.fill='ECEFF3'; o.font.color='5B6675'; o.font.b=true; }
+      if (xwHas(cls,'dq-ok')){ o.font.color='12734A'; o.font.b=true; }
+      else if (xwHas(cls,'dq-warn')){ o.font.color='A05A00'; o.font.b=true; }
+      else if (xwHas(cls,'dq-bad')){ o.font.color='C0221F'; o.font.b=true; }
+      if (xwHas(cls,'link')){ o.font.color='0057A5'; o.font.b=true; }
+      if (xwHas(cls,'pwc')){ o.font.color='5B2A7A'; o.font.b=true; }
+      var R3=R2, c3=c2;
+      if (cl._merge){ var mm=cl._merge; merges.push(xwRef(mm.r+off,mm.c)+':'+xwRef(mm.r+mm.rs-1+off,mm.c+mm.cs-1)); }
+      var sx;
+      if (isNum && cl.v!==null && isFinite(cl.v)){
+        o.fmt=xwNumFmt(cl); o.h='right'; sx=S.xf(o); numCell(R3,c3,+cl.v,sx); numCols[c3]=1;
+        wid(c3, (nfmt(cl.v, cl.dec===undefined?2:cl.dec)+(cl.pct?'%':cl.pp?' pp':'')).length+2);
+      } else if (isNum){
+        o.h='center'; o.font.color=o.font.color||'8A94A3'; sx=S.xf(o); strCell(R3,c3,'\u2014',sx); numCols[c3]=1;
+      } else {
+        var tx=xwText(cl);
+        o.h = xwHas(cls,'ta-c') ? 'center' : (xwHas(cls,'ta-r')?'right':'left');
+        sx=S.xf(o); strCell(R3,c3,tx,sx);
+        wid(c3, Math.min(tx.length+2, 46));
+      }
+      if (cl._merge){ var m3=cl._merge; for (var i3=0;i3<m3.rs;i3++) for (var j3=0;j3<m3.cs;j3++) if (i3||j3){ blank(m3.r+i3+off,m3.c+j3,sx); styled[(m3.r+i3)+','+(m3.c+j3)]=1; } }
+    }
+  }
+  if (!freezeCols && ncol>=4 && body.length && grid[nHead] && grid[nHead][0] && grid[nHead][0].v===undefined) freezeCols=1;
+  /* assemble rows */
+  var lastRow = off+grid.length-1, keys=Object.keys(cellsByRow).map(Number).sort(function(a,b){return a-b;});
+  keys.forEach(function(r){
+    var cs=cellsByRow[r], x='';
+    for (var c=0;c<cs.length;c++) if (cs[c]) x+=cs[c];
+    var ht='';
+    if (r===0) ht=' ht="21" customHeight="1"';
+    else if (r>=off && r<off+nHead) ht=' ht="'+(r===off+nHead-1?32:30)+'" customHeight="1"';
+    rowsXml.push('<row r="'+(r+1)+'"'+ht+'>'+x+'</row>');
+  });
+  var colsXml='<cols>';
+  for (var c4=0;c4<ncol;c4++){
+    var w=widths[c4]||10; w = numCols[c4] ? Math.max(9, Math.min(w, 16)) : Math.max(8, Math.min(w, 46));
+    colsXml+='<col min="'+(c4+1)+'" max="'+(c4+1)+'" width="'+w.toFixed(1)+'" customWidth="1"/>';
+  }
+  colsXml+='</cols>';
+  /* freeze header rows (+ identity columns) and AutoFilter on the column-header row */
+  var ySplit=off+nHead, topLeft=xwRef(ySplit, freezeCols);
+  var pane = '<pane'+(freezeCols?' xSplit="'+freezeCols+'"':'')+' ySplit="'+ySplit+'" topLeftCell="'+topLeft+'" activePane="'+(freezeCols?'bottomRight':'bottomLeft')+'" state="frozen"/>'+
+             '<selection pane="'+(freezeCols?'bottomRight':'bottomLeft')+'" activeCell="'+topLeft+'" sqref="'+topLeft+'"/>';
+  var af = body.length ? xwRef(off+nHead-1,0)+':'+xwRef(lastRow, ncol-1) : null;
+  var xml='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'+
+    '<dimension ref="A1:'+xwRef(Math.max(lastRow,0), ncol-1)+'"/>'+
+    '<sheetViews><sheetView workbookViewId="0" zoomScale="90" zoomScaleNormal="90">'+pane+'</sheetView></sheetViews>'+
+    '<sheetFormatPr defaultRowHeight="15"/>'+colsXml+'<sheetData>'+rowsXml.join('')+'</sheetData>'+
+    (af?'<autoFilter ref="'+af+'"/>':'')+
+    (merges.length?'<mergeCells count="'+merges.length+'">'+merges.map(function(m){return '<mergeCell ref="'+m+'"/>';}).join('')+'</mergeCells>':'')+
+    '<pageMargins left="0.4" right="0.4" top="0.5" bottom="0.5" header="0.3" footer="0.3"/>'+
+    '<pageSetup orientation="landscape"/></worksheet>';
+  return { xml:xml, name:sheetName, af:af };
+}
+function xwSheetName(n, used){
+  var s=String(n||'Sheet').replace(/[\[\]\*\?\/\\:]/g,' ').replace(/^'+|'+$/g,'').trim().substring(0,31)||'Sheet', b=s, k=2;
+  while (used[s.toLowerCase()]){ var suf=' ('+(k++)+')'; s=b.substring(0,31-suf.length)+suf; }
+  used[s.toLowerCase()]=1; return s;
+}
+function writeStyledXLSX(specs, filename){
+  if (typeof XLSX==='undefined' || !XLSX.CFB) throw new Error('zip writer unavailable');
+  var S=new XwStyles(), used={}, sheets=[];
+  specs.forEach(function(spec,i){ sheets.push(xwSheet(spec, S, xwSheetName(spec.sheet||('Sheet'+(i+1)), used))); });
+  var enc=new TextEncoder(), CFB=XLSX.CFB, z=CFB.utils.cfb_new({root:'R'});
+  var add=function(p, s){ CFB.utils.cfb_add(z, p, enc.encode(s)); };
+  var NS='http://schemas.openxmlformats.org/';
+  add('[Content_Types].xml','<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Types xmlns="'+NS+'package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/>'+
+    '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'+
+    sheets.map(function(s,i){ return '<Override PartName="/xl/worksheets/sheet'+(i+1)+'.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>'; }).join('')+
+    '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>'+
+    '<Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/></Types>');
+  add('_rels/.rels','<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="'+NS+'package/2006/relationships"><Relationship Id="rId1" Type="'+NS+'officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/><Relationship Id="rId2" Type="'+NS+'package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/></Relationships>');
+  add('docProps/core.xml','<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<cp:coreProperties xmlns:cp="'+NS+'package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><dc:title>DSM Sales Dashboard</dc:title><dc:creator>DSM Sales Dashboard</dc:creator><dcterms:created xsi:type="dcterms:W3CDTF">'+new Date().toISOString().replace(/\.\d+Z$/,'Z')+'</dcterms:created></cp:coreProperties>');
+  add('xl/workbook.xml','<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<workbook xmlns="'+NS+'spreadsheetml/2006/main" xmlns:r="'+NS+'officeDocument/2006/relationships"><bookViews><workbookView/></bookViews><sheets>'+
+    sheets.map(function(s,i){ return '<sheet name="'+xwEsc(s.name)+'" sheetId="'+(i+1)+'" r:id="rId'+(i+1)+'"/>'; }).join('')+'</sheets>'+
+    (sheets.some(function(s){return s.af;})?'<definedNames>'+sheets.map(function(s,i){ if(!s.af) return '';
+      var p=s.af.split(':').map(function(a){ return a.replace(/^([A-Z]+)(\d+)$/,'$$$1$$$2'); });
+      return '<definedName name="_xlnm._FilterDatabase" localSheetId="'+i+'" hidden="1">\''+xwEsc(s.name.replace(/'/g,"''"))+'\'!'+p[0]+':'+p[1]+'</definedName>'; }).join('')+'</definedNames>':'')+
+    '</workbook>');
+  add('xl/_rels/workbook.xml.rels','<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="'+NS+'package/2006/relationships">'+
+    sheets.map(function(s,i){ return '<Relationship Id="rId'+(i+1)+'" Type="'+NS+'officeDocument/2006/relationships/worksheet" Target="worksheets/sheet'+(i+1)+'.xml"/>'; }).join('')+
+    '<Relationship Id="rId'+(sheets.length+1)+'" Type="'+NS+'officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>');
+  sheets.forEach(function(s,i){ add('xl/worksheets/sheet'+(i+1)+'.xml', s.xml); });
+  add('xl/styles.xml', S.xml());
+  CFB.utils.cfb_del(z, '\u0001Sh33tJ5');                       // SheetJS's placeholder entry, if any
+  var out=CFB.write(z, {fileType:'zip', type:'array', compression:true});
+  dlBlob(new Blob([out instanceof Uint8Array?out:new Uint8Array(out)], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}), filename);
+}
+
 function downloadSpecXLSX(spec, filename){
   if (!haveXLSX()){ downloadSpecCSV(spec, filename.replace(/\.xlsx$/,'.csv')); return; }
+  try{ writeStyledXLSX([spec], filename); toast('Downloaded '+filename); return; }
+  catch(e){ console.warn('Styled Excel writer failed — using the plain writer', e); }
   try{ writeOneXLSX(spec, filename); }
   catch(e){ console.error(e); downloadSpecCSV(spec, filename.replace(/\.xlsx$/,'.csv')); }
 }
@@ -1254,6 +1499,8 @@ function downloadSpecCSV(spec, filename){
 function downloadMultiXLSX(specs, filename){
   if (!haveXLSX()){ toast('SheetJS not available — downloading each sheet as CSV','bad');
     specs.forEach(function(s,i){ downloadSpecCSV(s, filename.replace(/\.xlsx$/,'')+'_'+(s.sheet||i)+'.csv'); }); return; }
+  try{ writeStyledXLSX(specs, filename); toast('Downloaded '+filename); return; }
+  catch(e){ console.warn('Styled Excel writer failed — using the plain writer', e); }
   try{ writeMultiXLSX(specs, filename); }
   catch(e){ console.error(e); toast('Excel writer failed — downloading CSV instead','bad');
     specs.forEach(function(s,i){ downloadSpecCSV(s, filename.replace(/\.xlsx$/,'')+'_'+(s.sheet||i)+'.csv'); }); }
@@ -3734,21 +3981,26 @@ function buildSrcFromRows(rows, headers, fileName, slot, opts){
 }
 
 /* ---------------------------- data sources -----------------------------
-   Two ways to get the two FY workbooks, ONE pipeline after that:
-     A. GitHub repository (default) — data/FY_2025-26.xlsx & data/FY_2026-27.xlsx,
-        fetched RELATIVE to index.html with a cache-busting ?v=<timestamp>
-        (works under https://<user>.github.io/<repo>/, no names hard-coded).
-     B. Manual upload — the user picks the two Excel files (also the way to
-        run index.html straight from disk, where browsers block fetch()).
-   Both end in the same ArrayBuffer → parseFYWorkbook() (SheetJS +
-   the existing buildSrcFromRows) → rebuild() → dashboard.  Nothing is
-   stored in the browser; a manual dataset lives for this page session only
-   and is never replaced by repository data unless the user asks for it.   */
+   Three input files.  Two are mandatory, one optional:
+     Historical FY 2025-26  data/FY_2025-26.xlsx   (mandatory)
+     Current FY 2026-27     data/FY_2026-27.xlsx   (mandatory)
+     AOP FY 2026-27         data/AOP_2026-27.xlsx  (optional)
+   Each can come from the GitHub repository (fetched RELATIVE to index.html
+   with a cache-busting ?v=<timestamp>; lowercase .xlsx first, .XLSX only as
+   a fallback) or be chosen manually, file by file.  Whatever the source,
+   the bytes go through ONE pipeline: parseFYWorkbook() / the existing AOP
+   reader → rebuild() → dashboard.  Nothing is kept in browser storage;
+   manual files last for this page session.  A missing AOP never fails the
+   load.  Priority for AOP: manual upload → repository → none.            */
 var REPO_FILES = [ {slot:0, file:'FY_2025-26.xlsx', path:'data/FY_2025-26.xlsx'},
                    {slot:1, file:'FY_2026-27.xlsx', path:'data/FY_2026-27.xlsx'} ];
-var REPO_STATE = { loadedAt:null, files:[null,null], error:null, busy:false };
-var DATA_MODE = 'repo';                    // source of the data currently shown: 'repo' | 'manual'
-var MANUAL_PICK = [null, null];            // File objects chosen for the manual load (slot 0 / 1)
+var REPO_AOP   = {slot:'aop', file:'AOP_2026-27.xlsx', path:'data/AOP_2026-27.xlsx'};
+var REPO_STATE = { loadedAt:null, files:[null,null], error:null, busy:false,
+                   repo:[null,null], repoMsg:['',''] };      // last repository result per FY: 'loaded'|'missing'|'error'
+var DATA_MODE = 'repo';                    // 'manual' when either FY file in use was chosen manually
+var MANUAL_PICK = [null, null];            // FY files chosen manually, waiting for Build Dashboard
+var PARSED = [null, null];                 // last successfully processed FY file per slot {src, info} (kept on partial replace)
+var AOPS = { repoSrc:null, repoStatus:null, repoMsg:'', repoPath:'', manualSrc:null, off:false };
 var LOAD_TOKEN = 0;                        // a newer load cancels an older one still running
 
 function RepoError(msg, detail){ var e=new Error(msg); e.detail=detail||''; return e; }
@@ -3790,7 +4042,9 @@ function ldStep(i, state, meta, text){
   if (meta!==undefined) li.querySelector('.meta').innerHTML=meta;
   if (text!==undefined) li.querySelector('.tx').innerHTML=text;
 }
-function showLoading(mode){
+function slotKindName(k){ return k==='manual'?'Manual':k==='repo'?'Repository':k==='keep'?'Kept':'—'; }
+function showLoading(plan){
+  plan = plan || ['repo','repo'];
   if (typeof closeColFilter==='function') closeColFilter();
   document.getElementById('modal').className='modal';
   closeDataSource();
@@ -3798,28 +4052,30 @@ function showLoading(mode){
   document.getElementById('app-nav').classList.add('hide');
   document.getElementById('app-filters').classList.add('hide');
   document.getElementById('app-main').classList.add('hide');
-  document.getElementById('ld-title').innerHTML = mode==='manual' ? 'Loading manually selected files&hellip;' : 'Loading data from the repository&hellip;';
+  var anyManual = plan.some(function(k){ return k!=='repo'; });
+  document.getElementById('ld-title').innerHTML = anyManual ? 'Loading the selected files&hellip;' : 'Loading data from the repository&hellip;';
   document.getElementById('ld-err').classList.add('hide');
   document.getElementById('ld-retry').classList.add('hide');
   document.getElementById('ld-steps').classList.remove('hide');
-  var f0 = mode==='manual' && MANUAL_PICK[0] ? ' &mdash; '+esc(MANUAL_PICK[0].name) : '';
-  var f1 = mode==='manual' && MANUAL_PICK[1] ? ' &mdash; '+esc(MANUAL_PICK[1].name) : '';
-  ldStep(0,'','',(mode==='manual'?'Reading ':'Loading ')+'FY 2025-26'+f0+'&hellip;');
-  ldStep(1,'','',(mode==='manual'?'Reading ':'Loading ')+'FY 2026-27'+f1+'&hellip;');
-  ldStep(2,'','','Processing sales data&hellip;'); ldStep(3,'','','Building dashboard&hellip;');
-  var ch=document.getElementById('ld-choice'); if (ch) ch.classList.toggle('hide', mode==='manual');
+  [0,1].forEach(function(sl){
+    var k=plan[sl], nm=FY_DEF[sl].name;
+    var f = k==='manual' && MANUAL_PICK[sl] ? ' &mdash; '+esc(MANUAL_PICK[sl].name) : k==='keep' && PARSED[sl] ? ' &mdash; '+esc(PARSED[sl].info.file)+' (kept)' : '';
+    ldStep(sl,'','',(k==='repo'?'Loading ':k==='manual'?'Reading ':'Using ')+nm+f+'&hellip;');
+  });
+  ldStep(2,'','','Processing sales data&hellip;'); ldStep(3,'','','AOP targets (optional)&hellip;'); ldStep(4,'','','Building dashboard&hellip;');
+  var ch=document.getElementById('ld-choice'); if (ch) ch.classList.toggle('hide', anyManual);
   setManualOpen(false);
   window.scrollTo(0,0);
 }
-/* Loading/error screen: show the manual upload section */
 function setManualOpen(on){
   var m=document.getElementById('ld-manual'); if (m) m.classList.toggle('hide', !on);
   renderManualPanels();
 }
-function showLoadError(err, mode){
+function showLoadError(err, plan){
   var e=document.getElementById('ld-err'), local=(location.protocol==='file:');
-  if (mode==='manual'){
-    document.getElementById('ld-title').textContent='The selected Excel files could not be loaded';
+  var manual = plan && plan.some(function(k){ return k==='manual'; }) && !err.repo;
+  if (manual){
+    document.getElementById('ld-title').textContent='The selected Excel file could not be loaded';
     e.innerHTML='<b>'+(err.message||String(err))+'</b>'+(err.detail?'<br>'+err.detail:'')+
       '<br><br>Choose the correct file below and press <b>Build Dashboard</b> again, or load the repository data instead.';
   } else {
@@ -3828,7 +4084,8 @@ function showLoadError(err, mode){
       (local ? 'The dashboard is currently being opened locally (directly from the computer’s disk), where browsers block reading the <code>data</code> folder.'
              : 'The repository Excel files could not be reached or read.')+
       '<br><span style="font-size:12px">'+(err.message||String(err))+(err.detail?' '+err.detail:'')+'</span>'+
-      '<br><br>You can <b>try the repository again</b>, or <b>load the two Excel files manually</b> below.';
+      '<br><br>You can <b>try the repository again</b>, or <b>load the Excel files manually</b> below'+
+      (PARSED[0]||PARSED[1] ? ' &mdash; a file that did load is kept, so only the missing one has to be chosen.' : '.');
   }
   e.classList.remove('hide');
   document.getElementById('ld-retry').classList.remove('hide');
@@ -3843,19 +4100,19 @@ function pause(ms){ return new Promise(function(r){ setTimeout(r, ms||30); }); }
    committed that way.  rf.usedPath records which one was actually read.    */
 function fetchRepoFile(rf, cacheBust){
   var alt=rf.path.replace(/\.xlsx$/,'.XLSX');
-  var miss=function(extra){ return RepoError('Unable to load '+rf.file+' from the repository.'+(extra?' ('+extra+')':''),
-                                         'Expected path: <code>'+rf.path+'</code>'); };
+  var miss=function(extra, status){ var e=RepoError('Unable to load '+rf.file+' from the repository.'+(extra?' ('+extra+')':''),
+                                         'Expected path: <code>'+rf.path+'</code>'); e.status=status||0; e.notFound=(status===404); return e; };
   var get=function(path){ return fetch(path+cacheBust, {cache:'no-store'}); };   // relative to index.html — never "/data/…"
   rf.usedPath=rf.path;
   return get(rf.path).then(function(r){
     if (r.ok) return r.arrayBuffer();
-    if (r.status!==404 || alt===rf.path) throw miss('HTTP '+r.status);
+    if (r.status!==404 || alt===rf.path) throw miss('HTTP '+r.status, r.status);
     return get(alt).then(function(r2){
-      if (!r2.ok) throw miss('HTTP 404');
+      if (!r2.ok) throw miss('HTTP 404', 404);
       rf.usedPath=alt;
       console.warn('Loaded '+alt+' — please rename it to '+rf.path+' (the standard lowercase name).');
       return r2.arrayBuffer();
-    }, function(){ throw miss('HTTP 404'); });
+    }, function(){ throw miss('HTTP 404', 404); });
   }, function(e){ throw miss(e && e.message); });
 }
 function readLocalFile(file){
@@ -3868,37 +4125,103 @@ function readLocalFile(file){
 }
 /* ONE pipeline for both sources: get bytes → parse → rebuild → show.  The
    dashboard stays hidden for the whole load, so partial data is never shown. */
-function loadData(mode, isReload){
-  if (mode==='manual' && !(MANUAL_PICK[0] && MANUAL_PICK[1])){ toast('Select both Excel files first.','bad'); return Promise.resolve(); }
+/* ------------------------------ AOP input ------------------------------ */
+function aopFromBuffer(buf, fileName){
+  if (typeof XLSX==='undefined') throw new Error('The Excel reader is not available.');
+  var wb=XLSX.read(new Uint8Array(buf), {type:'array', cellNF:true, cellDates:false});
+  return aopParseWorkbook(wb, fileName);                   // the existing AOP reader — unchanged
+}
+function aopActive(){ return AOPS.off ? null : (AOPS.manualSrc || AOPS.repoSrc || null); }
+function aopSourceKind(){ return AOPS.off||!aopActive() ? null : (AOPS.manualSrc ? 'manual' : 'repo'); }
+/* put the active AOP in place; AOP tables / cards update immediately */
+function aopApply(){ AOP.src=aopActive(); aopAfterChange(); renderDataSource(); renderManualPanels(); if (typeof renderRepoStatus==='function') renderRepoStatus(); }
+/* fetch data/AOP_2026-27.xlsx (optional) — never throws */
+function fetchRepoAop(cacheBust){
+  return fetchRepoFile(REPO_AOP, cacheBust).then(function(buf){
+    try{
+      var src=aopFromBuffer(buf, REPO_AOP.file);
+      AOPS.repoSrc=src; AOPS.repoStatus='loaded'; AOPS.repoMsg=''; AOPS.repoPath=REPO_AOP.usedPath||REPO_AOP.path;
+      return 'loaded';
+    }catch(e){ AOPS.repoSrc=null; AOPS.repoStatus='error'; AOPS.repoMsg=e.message; console.warn('Repository AOP not accepted:', e); return 'error'; }
+  }, function(e){
+    AOPS.repoSrc=null; AOPS.repoStatus = (e.notFound || location.protocol==='file:' || !e.status) ? 'missing' : 'error';
+    AOPS.repoMsg = AOPS.repoStatus==='missing' ? 'Not found in the repository (optional)' : e.message;
+    return AOPS.repoStatus;
+  });
+}
+/* [Load Repository AOP] — use the repository AOP (drops a manual one) */
+function loadRepoAop(){
+  busy(true,'Loading '+REPO_AOP.path);
+  return fetchRepoAop('?v='+Date.now()).then(function(st){
+    busy(false);
+    if (st==='loaded'){ AOPS.manualSrc=null; AOPS.off=false; aopApply(); toast('Repository AOP loaded — '+REPO_AOP.path); }
+    else { aopApply(); toast(st==='missing' ? 'No AOP file in the repository ('+REPO_AOP.path+') — AOP is optional; upload one manually if needed.' : 'Repository AOP not accepted: '+AOPS.repoMsg, 'bad'); }
+  });
+}
+
+/* ONE pipeline for every source.  plan[slot] = 'repo' | 'manual' | 'keep'
+   ('keep' re-uses the already processed file of that slot, so replacing
+   only the Current FY does not need the Historical file again).  The
+   dashboard stays hidden for the whole load — no partial data is shown.   */
+function loadData(plan, opts){
+  opts=opts||{};
+  for (var q=0;q<2;q++){
+    if (plan[q]==='manual' && !MANUAL_PICK[q]){ toast('Choose the '+FY_DEF[q].name+' file first.','bad'); return Promise.resolve(); }
+    if (plan[q]==='keep' && !PARSED[q]){ toast(FY_DEF[q].name+' is not loaded — choose its file.','bad'); return Promise.resolve(); }
+  }
   var token=++LOAD_TOKEN, live=function(){ return token===LOAD_TOKEN; };
+  var withAopRepo = opts.aopRepo!==undefined ? opts.aopRepo : plan.indexOf('repo')>=0;
   REPO_STATE.busy=true; REPO_STATE.error=null;
   var cacheBust='?v='+Date.now();
-  var keepFrom = isReload && APP_READY ? ST.cFrom : null;
-  showLoading(mode);
-  /* clear the in-memory dataset first: nothing old can survive a reload */
-  FYSRC=[null,null]; DB=null; _aggCache={}; REPO_STATE.files=[null,null];
-  var bufs=[null,null], rfs=[null,null];
-  var getBuf=function(sl){
-    if (mode==='manual'){ var f=MANUAL_PICK[sl]; rfs[sl]={slot:sl, file:f.name, path:f.name, manual:true}; return readLocalFile(f); }
-    rfs[sl]=REPO_FILES[sl]; return fetchRepoFile(REPO_FILES[sl], cacheBust);
-  };
+  var keepFrom = APP_READY ? ST.cFrom : null;
+  showLoading(plan);
+  /* clear the dataset in use; kept slots are put back before parsing so the
+     Sales Area list is shared exactly as before                           */
+  FYSRC=[plan[0]==='keep'?PARSED[0].src:null, plan[1]==='keep'?PARSED[1].src:null]; DB=null; _aggCache={};
   var stop=function(){ if(!live()) throw {cancelled:true}; };
-  ldStep(0,'run');
+  var doSlot=function(sl){
+    var k=plan[sl];
+    if (k==='keep'){ ldStep(sl,'ok','kept',FY_DEF[sl].name+' &mdash; '+esc(PARSED[sl].info.file)+' ('+slotKindName(PARSED[sl].info.kind)+', kept)'); return Promise.resolve(); }
+    ldStep(sl,'run');
+    var rf = k==='manual' ? {slot:sl, file:MANUAL_PICK[sl].name, path:MANUAL_PICK[sl].name, manual:true} : {slot:sl, file:REPO_FILES[sl].file, path:REPO_FILES[sl].path};
+    var get = k==='manual' ? readLocalFile(MANUAL_PICK[sl]) : fetchRepoFile(rf, cacheBust);
+    return get.then(function(buf){
+      stop();
+      ldStep(sl,'ok', nfmt(buf.byteLength/1048576,2)+' MB', FY_DEF[sl].name+' &mdash; '+esc(rf.file)+(k==='manual'?' (manual)':''));
+      return pause(20).then(function(){
+        stop(); ldStep(2,'run');
+        var src;
+        try{ src=parseFYWorkbook(buf, rf); }
+        catch(e){ if (k==='repo'){ REPO_STATE.repo[sl]='error'; REPO_STATE.repoMsg[sl]=e.message; e.repo=true; } PARSED[sl]=null; throw e; }
+        var other=FYSRC[1-sl]; if (other) other.areas=src.areas;   // shared Sales Area list
+        FYSRC[sl]=src;
+        var info={file:rf.file, path:rf.path, usedPath:rf.usedPath||rf.path, bytes:buf.byteLength, manual:k==='manual', kind:k};
+        PARSED[sl]={src:src, info:info};
+        if (k==='repo'){ REPO_STATE.repo[sl]='loaded'; REPO_STATE.repoMsg[sl]=''; }
+        if (k==='manual') MANUAL_PICK[sl]=null;                     // consumed
+      });
+    }, function(e){
+      if (e && e.cancelled) throw e;
+      if (k==='repo'){ REPO_STATE.repo[sl] = e.notFound ? 'missing' : 'error'; REPO_STATE.repoMsg[sl]=e.message; e.repo=true; }
+      PARSED[sl]=null; throw e;
+    });
+  };
   return pause(20)
-  .then(function(){ stop(); return getBuf(0); })
-  .then(function(b){ stop(); bufs[0]=b; ldStep(0,'ok', nfmt(b.byteLength/1048576,2)+' MB', 'FY 2025-26 &mdash; '+esc(rfs[0].file)); ldStep(1,'run'); return pause(20); })
-  .then(function(){ stop(); return getBuf(1); })
-  .then(function(b){ stop(); bufs[1]=b; ldStep(1,'ok', nfmt(b.byteLength/1048576,2)+' MB', 'FY 2026-27 &mdash; '+esc(rfs[1].file)); ldStep(2,'run'); return pause(30); })
+  .then(function(){ stop(); return doSlot(0); })
+  .then(function(){ stop(); return doSlot(1); })
   .then(function(){
     stop();
-    [0,1].forEach(function(sl){
-      var src=parseFYWorkbook(bufs[sl], rfs[sl]);
-      var other=FYSRC[1-sl]; if (other) other.areas=src.areas;   // shared Sales Area list
-      FYSRC[sl]=src;
-      REPO_STATE.files[sl]={file:rfs[sl].file, path:rfs[sl].path, usedPath:rfs[sl].usedPath||rfs[sl].path, bytes:bufs[sl].byteLength, manual:!!rfs[sl].manual};
-    });
-    bufs=[null,null];
-    ldStep(2,'ok', nfmt(FYSRC[0].fs.rows+FYSRC[1].fs.rows,0)+' rows'); ldStep(3,'run');
+    ldStep(2,'ok', nfmt(FYSRC[0].fs.rows+FYSRC[1].fs.rows,0)+' rows');
+    ldStep(3,'run');
+    if (!withAopRepo) return null;
+    return fetchRepoAop(cacheBust);
+  })
+  .then(function(st){
+    stop();
+    var act=aopActive(), kind=aopSourceKind();
+    ldStep(3, act?'ok':'', act ? (kind==='manual'?'manual':'repository') : (st==='error'?'not accepted':'not found'),
+           act ? 'AOP targets &mdash; '+esc(act.file) : 'AOP targets &mdash; not loaded (optional)');
+    ldStep(4,'run');
     return pause(30);
   })
   .then(function(){
@@ -3907,41 +4230,59 @@ function loadData(mode, isReload){
     /* the default To Date always follows the latest billing date of the
        current-year file; the comparison window follows automatically      */
     ST.cTo=null;
-    if (keepFrom!==null) ST.cFrom=keepFrom; else if (APP_READY) ST.cFrom=null;
-    DATA_MODE=mode;
+    if (keepFrom!==null) ST.cFrom=keepFrom;
+    [0,1].forEach(function(sl){ REPO_STATE.files[sl]=PARSED[sl].info; });
+    DATA_MODE = (PARSED[0].info.manual||PARSED[1].info.manual) ? 'manual' : 'repo';
     REPO_STATE.loadedAt=new Date();
-    ldStep(3,'ok');
+    AOP.src=aopActive(); _aopM=null;
+    ldStep(4,'ok');
     document.getElementById('ld-title').textContent='Preparing dashboard…';
     return pause(150);
   })
   .then(function(){
     stop();
     enterApp();
+    updateAopUI();
     REPO_STATE.busy=false;
-    toast((mode==='manual'?'Manual files loaded':(isReload?'Repository data reloaded':'Repository data loaded'))+' — '+DB.fy[1].name+' to '+fmtDate(DB.fy[1]._maxT));
+    var src=[0,1].map(function(sl){ return slotKindName(PARSED[sl].info.kind); });
+    toast('Data loaded — Historical: '+src[0]+' · Current: '+src[1]+' · AOP: '+(aopSourceKind()?slotKindName(aopSourceKind()):'not loaded')+' — '+DB.fy[1].name+' to '+fmtDate(DB.fy[1]._maxT));
   })
   .catch(function(err){
     if (err && err.cancelled) return;          // superseded by a newer load / manual choice
     REPO_STATE.busy=false;
     console.error(err);
-    FYSRC=[null,null]; DB=null; _aggCache={};
-    for (var i=0;i<4;i++){ var li=document.getElementById('ld-s'+i); if (li && li.className==='run') ldStep(i,'err'); }
-    showLoadError(err, mode);
+    FYSRC=[null,null]; DB=null; _aggCache={}; REPO_STATE.files=[null,null];
+    for (var i=0;i<5;i++){ var li=document.getElementById('ld-s'+i); if (li && li.className==='run') ldStep(i,'err'); }
+    showLoadError(err, plan);
     updateLoadUI();
   });
 }
-function loadRepository(isReload){ return loadData('repo', isReload); }
-function buildManual(){ return loadData('manual', APP_READY); }
+function loadRepository(){ AOPS.off=false; return loadData(['repo','repo'], {aopRepo:true}); }
+/* Build with the chosen files; a slot without a new file keeps what it has */
+function manualPlan(){ return [0,1].map(function(sl){ return MANUAL_PICK[sl] ? 'manual' : (PARSED[sl] ? 'keep' : null); }); }
+function canBuildManual(){ var p=manualPlan(); return p[0]!==null && p[1]!==null && (MANUAL_PICK[0]||MANUAL_PICK[1]); }
+function buildManual(){
+  var p=manualPlan();
+  if (p[0]===null || p[1]===null){ toast('Choose the '+FY_DEF[p[0]===null?0:1].name+' file first.','bad'); return Promise.resolve(); }
+  if (!MANUAL_PICK[0] && !MANUAL_PICK[1]){ toast('Choose at least one new FY file.','bad'); return Promise.resolve(); }
+  return loadData(p, {aopRepo: AOPS.repoStatus===null && location.protocol!=='file:'});   // try the optional repository AOP once if never tried
+}
+/* [Clear Manual Data]: forget manual files (nothing on disk is touched) and
+   go back to the repository for anything that was manual                 */
 function clearManual(){
-  MANUAL_PICK=[null,null];
+  var hadFY = (PARSED[0]&&PARSED[0].info.manual) || (PARSED[1]&&PARSED[1].info.manual);
+  var hadAop = !!AOPS.manualSrc;
+  MANUAL_PICK=[null,null]; AOPS.manualSrc=null; AOPS.off=false;
   ['man-up-0','man-up-1'].forEach(function(id){ var e=document.getElementById(id); if(e) e.value=''; });
-  if (DATA_MODE==='manual'){ DATA_MODE='repo'; toast('Manual data cleared — loading repository data'); return loadRepository(true); }
-  renderManualPanels(); renderDataSource();
+  if (hadFY){ toast('Manual data cleared — loading repository data'); return loadRepository(); }
+  if (hadAop && !AOPS.repoSrc && AOPS.repoStatus!=='missing') return loadRepoAop();
+  aopApply();
+  if (hadAop) toast(AOPS.repoSrc ? 'Manual AOP cleared — repository AOP in use' : 'Manual AOP cleared — no AOP loaded');
 }
 /* user chooses manual upload while the repository is still loading: stop it */
 function chooseManual(){
-  if (REPO_STATE.busy && DATA_MODE!=='manual' && !APP_READY){ LOAD_TOKEN++; REPO_STATE.busy=false;
-    for (var i=0;i<4;i++){ var li=document.getElementById('ld-s'+i); if (li && li.className==='run') ldStep(i,'',undefined); }
+  if (REPO_STATE.busy && !APP_READY){ LOAD_TOKEN++; REPO_STATE.busy=false;
+    for (var i=0;i<5;i++){ var li=document.getElementById('ld-s'+i); if (li && li.className==='run') ldStep(i,'',undefined); }
     document.getElementById('ld-steps').classList.add('hide');
     document.getElementById('ld-title').textContent='Manual data load';
   }
@@ -3950,21 +4291,40 @@ function chooseManual(){
   setManualOpen(true);
 }
 
-/* -------- manual-upload panel (rendered on the load screen and in the
-   Data Source panel; both share MANUAL_PICK and the two hidden inputs) -- */
+/* -------- per-file source panel (load/error screen AND Data Source panel;
+   both share MANUAL_PICK / AOPS and the hidden file inputs) ------------- */
+function repoBadge(st, optional){
+  if (st==='loaded')  return '<span class="dsb ok">&#10003; Loaded</span>';
+  if (st==='missing') return '<span class="dsb '+(optional?'na':'bad')+'">'+(optional?'Not found &middot; optional':'Not found')+'</span>';
+  if (st==='error')   return '<span class="dsb bad">Not accepted</span>';
+  return '<span class="dsb na">Not tried</span>';
+}
 function manualPanelHTML(){
-  var slot=function(sl){
-    var f=MANUAL_PICK[sl], nm=FY_DEF[sl].name, lbl=sl?'Current':'Historical';
-    return '<div class="man-slot'+(f?' done':'')+'" data-man-drop="'+sl+'">'+
-      '<div class="man-l"><span class="man-ic">'+(f?'&#10003;':(sl+1))+'</span><div><div class="man-t">'+lbl+' '+nm+'</div>'+
-      '<div class="man-f">'+(f?esc(f.name)+' &middot; '+nfmt(f.size/1048576,2)+' MB':'No file selected')+'</div></div></div>'+
-      '<button class="btn sm'+(f?'':' pri')+'" data-man-pick="'+sl+'">'+(f?'Change':'Choose Excel File')+'</button></div>';
+  var fyRow=function(sl){
+    var p=PARSED[sl], pick=MANUAL_PICK[sl], nm=FY_DEF[sl].name, lbl=sl?'Current':'Historical';
+    var inUse = p ? (p.info.manual ? 'Manual' : 'Repository')+' &middot; '+esc(p.info.file) : 'Not loaded';
+    return '<div class="man-slot'+(pick?' done':(p?' have':''))+'" data-man-drop="'+sl+'">'+
+      '<div class="man-l"><span class="man-ic">'+(pick||p?'&#10003;':(sl+1))+'</span><div style="min-width:0"><div class="man-t">'+lbl+' '+nm+' <span class="man-req">required</span></div>'+
+      '<div class="man-f">In use: <b>'+inUse+'</b></div>'+
+      '<div class="man-f">Repository: '+repoBadge(REPO_STATE.repo[sl])+' <code>'+REPO_FILES[sl].path+'</code></div>'+
+      '<div class="man-f">Manual: '+(pick?'<b class="pk">'+esc(pick.name)+' &middot; '+nfmt(pick.size/1048576,2)+' MB &mdash; waiting for Build</b>':'&mdash;')+'</div></div></div>'+
+      '<button class="btn sm'+(p||pick?'':' pri')+'" data-man-pick="'+sl+'">'+(pick?'Change':(p?'Replace Manually':'Choose Excel File'))+'</button></div>';
   };
-  var both=!!(MANUAL_PICK[0]&&MANUAL_PICK[1]);
-  return '<div class="man-h">Manual data load</div>'+slot(0)+slot(1)+
-    '<div class="man-btns"><button class="btn gold" data-man-build'+(both?'':' disabled')+'>Build Dashboard &rarr;</button>'+
-    ((MANUAL_PICK[0]||MANUAL_PICK[1]||DATA_MODE==='manual')?'<button class="btn" data-man-clear>Clear Manual Data</button>':'')+'</div>'+
-    '<div class="man-n">Files are read in this browser only &mdash; never uploaded or modified. Manual data is used for this session and is not replaced by repository data unless you choose to reload it.</div>';
+  var act=aopActive(), kind=aopSourceKind();
+  var aopRow='<div class="man-slot'+(act?' have':'')+' aop" data-aop-drop="1">'+
+    '<div class="man-l"><span class="man-ic">'+(act?'&#10003;':'3')+'</span><div style="min-width:0"><div class="man-t">AOP '+AOP_FY+' <span class="man-req opt">optional</span></div>'+
+    '<div class="man-f">In use: <b>'+(act ? slotKindName(kind)+' &middot; '+esc(act.file) : (AOPS.off?'Cleared for this session':'Not loaded'))+'</b></div>'+
+    '<div class="man-f">Repository: '+repoBadge(AOPS.repoStatus, true)+' <code>'+REPO_AOP.path+'</code></div>'+
+    '<div class="man-f">Manual: '+(AOPS.manualSrc?'<b>'+esc(AOPS.manualSrc.file)+'</b> (this session)':'&mdash;')+'</div></div></div>'+
+    '<div class="man-ab"><button class="btn sm" data-aop="repo">Load Repository AOP</button>'+
+    '<button class="btn sm'+(act?'':' pri')+'" data-aop="pick">'+(AOPS.manualSrc?'Replace AOP':'Upload AOP Manually')+'</button>'+
+    '<button class="btn sm" data-aop="clear"'+(act?'':' disabled')+'>Clear AOP</button></div></div>';
+  var can=canBuildManual();
+  var hasManual = MANUAL_PICK[0]||MANUAL_PICK[1]||AOPS.manualSrc||(PARSED[0]&&PARSED[0].info.manual)||(PARSED[1]&&PARSED[1].info.manual);
+  return '<div class="man-h">Data files</div>'+fyRow(0)+fyRow(1)+aopRow+
+    '<div class="man-btns"><button class="btn gold" data-man-build'+(can?'':' disabled')+' title="Rebuild with the chosen FY file(s); a file not replaced is kept">Build Dashboard &rarr;</button>'+
+    (hasManual?'<button class="btn" data-man-clear>Clear Manual Data</button>':'')+'</div>'+
+    '<div class="man-n">Replace one FY file or both &mdash; a file you do not replace is kept. An AOP file applies immediately and does not reload the sales data. Files are read in this browser only (never uploaded or modified) and last for this session.</div>';
 }
 function renderManualPanels(){
   ['ld-manual-host','ds-manual-host'].forEach(function(id){ var e=document.getElementById(id); if (e) e.innerHTML=manualPanelHTML(); });
@@ -3973,15 +4333,14 @@ function renderManualPanels(){
 /* ---------------------------- Data Source panel ------------------------- */
 function renderDataSource(){
   var b=document.getElementById('ds-cur'); if(!b) return;
-  var man=(DATA_MODE==='manual' && DB), repo=(DATA_MODE==='repo' && DB);
-  var fl=function(sl){ var f=REPO_STATE.files[sl]; return f? esc(f.file) : '&mdash;'; };
-  b.innerHTML = '<div class="ds-src"><span class="ds-dot'+(DB?'':' off')+'"></span><b>'+(man?'Manual Upload':repo?'GitHub Repository':'No data loaded')+'</b></div>'+
-    (DB ? '<table class="repo-st">'+
-      '<tr><th>Historical</th><td>'+DB.fy[0].name+' &#10003; &mdash; '+fl(0)+'</td></tr>'+
-      '<tr><th>Current</th><td>'+DB.fy[1].name+' &#10003; &mdash; '+fl(1)+'</td></tr>'+
-      '<tr><th>Latest Billing</th><td><b>'+fmtDate(DB.fy[1]._maxT)+'</b></td></tr></table>' : '');
-  var rb=document.getElementById('ds-repo');
-  if (rb) rb.innerHTML = man ? '&#8635; Switch to GitHub Repository' : '&#8635; Reload Repository Data';
+  var kindOf=function(sl){ var f=REPO_STATE.files[sl]; return f ? (f.manual?'Manual':'Repository') : 'Not loaded'; };
+  var ak=aopSourceKind();
+  var dot=function(k){ return '<span class="ds-dot'+(k==='Not loaded'?' off':'')+'" style="display:inline-block;margin-right:6px"></span>'; };
+  b.innerHTML = '<table class="repo-st">'+
+    '<tr><th>Historical '+FY_DEF[0].name+'</th><td>'+dot(kindOf(0))+'<b>'+kindOf(0)+'</b>'+(REPO_STATE.files[0]?' &mdash; '+esc(REPO_STATE.files[0].file):'')+'</td></tr>'+
+    '<tr><th>Current '+FY_DEF[1].name+'</th><td>'+dot(kindOf(1))+'<b>'+kindOf(1)+'</b>'+(REPO_STATE.files[1]?' &mdash; '+esc(REPO_STATE.files[1].file):'')+'</td></tr>'+
+    '<tr><th>AOP '+AOP_FY+'</th><td>'+dot(ak?'x':'Not loaded')+'<b>'+(ak?slotKindName(ak):'Not loaded')+'</b>'+(ak?' &mdash; '+esc(aopActive().file):' (optional)')+'</td></tr>'+
+    (DB?'<tr><th>Latest Billing</th><td><b>'+fmtDate(DB.fy[1]._maxT)+'</b></td></tr>':'')+'</table>';
   renderManualPanels();
 }
 function openDataSource(){
@@ -4005,15 +4364,18 @@ function wireManual(){
       renderManualPanels();
     });
   });
-  /* drag & drop a file onto either slot */
-  document.addEventListener('dragover', function(e){ var z=e.target.closest && e.target.closest('[data-man-drop]'); if (z){ e.preventDefault(); z.classList.add('over'); } });
-  document.addEventListener('dragleave', function(e){ var z=e.target.closest && e.target.closest('[data-man-drop]'); if (z) z.classList.remove('over'); });
-  document.addEventListener('drop', function(e){ var z=e.target.closest && e.target.closest('[data-man-drop]'); if (!z) return; e.preventDefault();
-    var f=e.dataTransfer.files && e.dataTransfer.files[0]; if (f){ MANUAL_PICK[+z.dataset.manDrop]=f; renderManualPanels(); } });
+  /* drag & drop a file onto a slot */
+  document.addEventListener('dragover', function(e){ var z=e.target.closest && e.target.closest('[data-man-drop],[data-aop-drop]'); if (z){ e.preventDefault(); z.classList.add('over'); } });
+  document.addEventListener('dragleave', function(e){ var z=e.target.closest && e.target.closest('[data-man-drop],[data-aop-drop]'); if (z) z.classList.remove('over'); });
+  document.addEventListener('drop', function(e){
+    var z=e.target.closest && e.target.closest('[data-man-drop],[data-aop-drop]'); if (!z) return; e.preventDefault(); z.classList.remove('over');
+    var f=e.dataTransfer.files && e.dataTransfer.files[0]; if (!f) return;
+    if (z.dataset.aopDrop) readAopExcel(f); else { MANUAL_PICK[+z.dataset.manDrop]=f; renderManualPanels(); }
+  });
   on('ds-x','click', closeDataSource);
   var dm=document.getElementById('ds-modal'); if (dm) dm.addEventListener('click', function(e){ if (e.target===this) closeDataSource(); });
   document.addEventListener('keydown', function(e){ if (e.key==='Escape') closeDataSource(); });
-  on('ds-repo','click', function(){ loadRepository(APP_READY); });
+  on('ds-repo','click', function(){ loadRepository(); });
 }
 
 /* ------------------------------ file read ------------------------------ */
@@ -4084,7 +4446,8 @@ function updateLoadUI(){
   });
   renderRepoStatus();
   var sv=document.getElementById('hf-src'), sb=document.getElementById('hdr-load');
-  if (sv) sv.innerHTML='<span class="dot'+(DB?'':' bad')+'"></span>'+(DB ? (DATA_MODE==='manual'?'Manual Upload':'GitHub Repository') : 'Not loaded');
+  var fm=[0,1].map(function(sl){ var f=REPO_STATE.files[sl]; return f&&f.manual; });
+  if (sv) sv.innerHTML='<span class="dot'+(DB?'':' bad')+'"></span>'+(DB ? (fm[0]&&fm[1]?'Manual Upload':(fm[0]||fm[1]?'Repository + Manual':'GitHub Repository')) : 'Not loaded');
   if (sb) sb.className='fact fact-btn '+(DB?'ok':'off');
   renderDataSource();
   var go=document.getElementById('land-go');
@@ -4113,10 +4476,14 @@ function renderRepoStatus(){
   var tot = (FYSRC[0]&&FYSRC[1]) ? FYSRC[0].fs.rows+FYSRC[1].fs.rows : null;
   var used= (FYSRC[0]&&FYSRC[1]) ? FYSRC[0].fs.inFY+FYSRC[1].fs.inFY : null;
   var man = (DATA_MODE==='manual');
-  t.innerHTML = row('Data Source', man ? '<b>Manual Upload</b> &mdash; files selected on this computer (this session only)' : 'GitHub Repository &mdash; <code>'+esc(base)+'data/</code>')+fyRow(0)+fyRow(1)+
+  var k=function(sl){ var f=REPO_STATE.files[sl]; return f?(f.manual?'Manual':'Repository'):'&mdash;'; };
+  var ak=aopSourceKind();
+  t.innerHTML = row('Current Source', 'Historical FY &rarr; <b>'+k(0)+'</b> &middot; Current FY &rarr; <b>'+k(1)+'</b> &middot; AOP &rarr; <b>'+(ak?slotKindName(ak):'None')+'</b>')+
+    row('Repository', 'GitHub Repository &mdash; <code>'+esc(base)+'data/</code> &middot; Historical '+repoBadge(REPO_STATE.repo[0])+' &middot; Current '+repoBadge(REPO_STATE.repo[1])+' &middot; AOP '+repoBadge(AOPS.repoStatus,true))+fyRow(0)+fyRow(1)+
+    row('AOP '+AOP_FY, aopActive() ? '<span class="okv">&#10003; Loaded</span> &mdash; '+(ak==='manual'?'manual: ':'<code>')+esc(ak==='manual'?aopActive().file:(AOPS.repoPath||REPO_AOP.path))+(ak==='manual'?'':'</code>') : '<span style="color:#a05a00;font-weight:650">Not loaded</span> (optional)')+
     row('Latest Current Billing', DB ? '<b>'+fmtDate(DB.fy[1]._maxT)+'</b> (from '+esc((REPO_STATE.files[1]||REPO_FILES[1]).file)+')' : '&mdash;')+
     row('Records processed', tot===null ? '&mdash;' : '<b>'+nfmt(tot,0)+'</b> billing lines read &middot; '+nfmt(used,0)+' inside the two financial years')+
-    row('Loaded at', REPO_STATE.loadedAt ? REPO_STATE.loadedAt.toLocaleString()+' &middot; '+(man?'read from the selected files':'cache-busted fetch')+', not stored in the browser' : '&mdash;')+
+    row('Loaded at', REPO_STATE.loadedAt ? REPO_STATE.loadedAt.toLocaleString()+' &middot; '+(man?'manual files read in this browser':'cache-busted fetch')+', not stored in the browser' : '&mdash;')+
     (REPO_STATE.error ? row('Last error','<span class="badv">'+REPO_STATE.error+'</span>') : '');
 }
 function showLanding(){
@@ -4295,7 +4662,7 @@ function renderAbout(){
   document.getElementById('about-host').innerHTML =
   '<div class="card"><div class="card-h"><h3>Data Source</h3><span class="hint">GitHub repository</span></div><div class="card-b">'+
   '<p>This dashboard reads the following files directly from the GitHub repository:</p><ul class="tight">'+
-  '<li>Historical: <code>data/FY_2025-26.xlsx</code> &mdash; Historical FY</li><li>Current: <code>data/FY_2026-27.xlsx</code> &mdash; Current FY till date</li></ul>'+
+  '<li>Historical: <code>data/FY_2025-26.xlsx</code> &mdash; Historical FY</li><li>Current: <code>data/FY_2026-27.xlsx</code> &mdash; Current FY till date</li><li>AOP (optional): <code>data/AOP_2026-27.xlsx</code> &mdash; AOP targets FY 2026-27; the dashboard works fully without it</li></ul>'+
   '<p>Use these exact names with a lowercase <code>.xlsx</code> extension (GitHub Pages is case-sensitive). As a safeguard, a file committed as <code>.XLSX</code> is still found, and the Data Quality tab then asks for it to be renamed.</p>'+
   '<p>If the repository files cannot be reached (for example when <code>index.html</code> is opened directly from a computer), the two Excel files can be selected manually instead &mdash; <b>Data Source</b> in the header, or the load screen. Manually selected files go through exactly the same processing and are used for the current session only.</p>'+
   '<p>The Excel files are the authoritative data source for the dashboard. The dashboard processes the files locally in the user&rsquo;s browser. No sales data is uploaded to an external server by the dashboard.</p>'+
@@ -4605,7 +4972,7 @@ var AOP_TBL = ['MS','HSD','PW','CONV','LU','DF','SK','CG','TOT'];
 var AOP_TBL_LBL = {MS:'MS (Petrol)', HSD:'HSD (Diesel)', PW:'Power', CONV:'Power Conversion', LU:'Lube', DF:'DEF', SK:'SKO', CG:'CNG + CBG', TOT:'TOTAL ('+TOTAL_LBL+')'};
 var AOP_TBL_BAND = {MS:'b-yellow', HSD:'b-orange', PW:'b-green', CONV:'b-green', LU:'b-blue', DF:'b-blue', SK:'b-blue', CG:'b-blue', TOT:'b-grey'};
 function aopScopeName(){ return ST.sa==='ALL' ? 'Raipur Region' : DB.areaLabels[DB.areas.indexOf(ST.sa)]; }
-function aopFileLine(){ return AOP.src ? ('AOP file: '+AOP.src.file+' · '+AOP.src.fy+' · uploaded '+new Date(AOP.src.uploadedAt).toLocaleString()) : 'AOP file: not loaded'; }
+function aopFileLine(){ return AOP.src ? ('AOP file: '+AOP.src.file+' · '+AOP.src.fy+' · '+(aopSourceKind()==='manual'?'manual upload':'repository')+' · read '+new Date(AOP.src.uploadedAt).toLocaleString()) : 'AOP file: not loaded'; }
 
 function buildAopSpec(which){
   var b=aopBasis(which), isM=(which==='month'), agg=isM?P.A.curMonth:P.A.perCur;
@@ -4731,22 +5098,28 @@ function renderAopDQ(){
 /* ------------------------------ upload / UI ----------------------------- */
 function aopSummaryHtml(){
   var S=AOP.src;
-  if (!S) return '<span style="color:#a05a00;font-weight:650">AOP not loaded</span> &mdash; the AOP comparison will show "AOP not loaded". The rest of the dashboard works normally.';
+  if (!S) return '<span style="color:#a05a00;font-weight:650">AOP not loaded (optional)</span> &mdash; '+(AOPS.off?'cleared for this session. ':(AOPS.repoStatus==='error'?'the repository AOP was not accepted ('+esc(AOPS.repoMsg)+'). ':'no <code>'+REPO_AOP.path+'</code> in the repository. '))+'The AOP comparison shows "AOP not loaded"; the rest of the dashboard works normally.';
   var M=aopModel(), map='';
   if (M.areas.length) map=' · '+M.mapped.length+' of '+M.saRows+' mapped'+(M.unmapped.length?(' · <span style="color:#c0221f">'+M.unmapped.length+' unmapped</span>'):'');
   return '&#10003; <b>AOP loaded</b> · '+esc(S.file)+'<br>'+esc(S.fy)+' · '+M.saRows+' Sales Areas'+map+
     ((M.missing.length||M.invalid.length)?(' · <span style="color:#c0221f">'+M.missing.length+' missing / '+M.invalid.length+' invalid values</span>'):'')+
-    '<br><span style="color:#6b7280;font-weight:500">uploaded '+esc(new Date(S.uploadedAt).toLocaleString())+' · stored in this browser</span>';
+    '<br><span style="color:#6b7280;font-weight:500">source: '+(aopSourceKind()==='manual'?'manual upload (this session)':'repository '+esc(AOPS.repoPath||REPO_AOP.path))+' · read '+esc(new Date(S.uploadedAt).toLocaleString())+'</span>';
 }
 function updateAopUI(){
   var on=!!AOP.src;
   ['ldz-aop','dz-aop'].forEach(function(id){ var e=document.getElementById(id); if (e) e.className='dz2'+(on?' done':''); });
   ['lfn-aop','fn-aop'].forEach(function(id){ var e=document.getElementById(id); if (e) e.innerHTML=aopSummaryHtml(); });
   document.querySelectorAll('[data-aop-replace]').forEach(function(b){ b.disabled=!on; });
+  var ub=document.getElementById('aop-up-btn'); if (ub) ub.textContent = AOPS.manualSrc ? 'Replace AOP' : 'Upload AOP Manually';
+  var st=document.getElementById('aop-src-st');
+  if (st) st.innerHTML='<table class="repo-st"><tr><th>Repository</th><td>'+repoBadge(AOPS.repoStatus,true)+' <code>'+REPO_AOP.path+'</code></td></tr>'+
+    '<tr><th>Manual</th><td>'+(AOPS.manualSrc?'<span class="dsb ok">&#10003; Loaded</span> '+esc(AOPS.manualSrc.file):'<span class="dsb na">Not loaded</span>')+'</td></tr>'+
+    '<tr><th>In use</th><td><b>'+(on?(aopSourceKind()==='manual'?'Manual':'Repository'):'None')+'</b></td></tr></table>';
   document.querySelectorAll('[data-aop="clear"]').forEach(function(b){ b.disabled=!on; });
   var f=document.getElementById('hfb-aop'), v=document.getElementById('hf-aop');
   if (f) f.className='fact '+(on?'ok':'off');
-  if (v) v.innerHTML='<span class="dot'+(on?'':' bad')+'"></span>'+(on?esc(AOP.src.fy):'Not loaded');
+  if (v) v.innerHTML='<span class="dot'+(on?'':' bad')+'"></span>'+(on?esc(AOP.src.fy):'Not Loaded');
+  if (f) f.title = on ? 'AOP '+AOP.src.fy+' — '+(aopSourceKind()==='manual'?'manual upload':'repository')+': '+AOP.src.file : 'AOP is optional — add data/AOP_2026-27.xlsx to the repository or upload it via Data Source';
 }
 function aopAfterChange(){
   _aopM=null;
@@ -4756,39 +5129,32 @@ function aopAfterChange(){
 function readAopExcel(file){
   if (typeof XLSX==='undefined'){ toast('The Excel reader did not load — cannot read the AOP file.','bad'); return; }
   busy(true,'Reading AOP '+file.name);
-  var fr=new FileReader();
-  fr.onload=function(e){
+  readLocalFile(file).then(function(buf){
     setTimeout(function(){
       var src;
-      try{
-        var wb=XLSX.read(new Uint8Array(e.target.result), {type:'array', cellNF:true, cellDates:false});
-        src=aopParseWorkbook(wb, file.name);
-      }catch(err){
+      try{ src=aopFromBuffer(buf, file.name); }
+      catch(err){
         busy(false); console.error(err);
-        toast('AOP file not accepted ('+file.name+'): '+err.message+(AOP.src?' The previously loaded AOP is unchanged.':''),'bad');
+        toast('AOP file not accepted ('+file.name+'): '+err.message+(AOP.src?' The AOP in use is unchanged.':''),'bad');
         return;
       }
-      AOP.src=src;
-      aopPersist(src).then(function(where){
-        aopAfterChange(); busy(false);
-        var M=aopModel(), msg='AOP '+src.fy+' loaded from '+file.name+' — '+M.saRows+' Sales Areas';
-        if (M.areas.length) msg+=', '+M.mapped.length+' mapped'+(M.unmapped.length?(', '+M.unmapped.length+' UNMAPPED (see Data Quality)'):'');
-        if (!where) msg+=' · could not be stored in this browser';
-        toast(msg, (M.unmapped.length||M.missing.length||M.invalid.length||!where)?'bad':'');
-      });
+      AOPS.manualSrc=src; AOPS.off=false;            // manual AOP overrides the repository AOP for this session
+      aopApply(); busy(false);
+      var M=aopModel(), msg='AOP '+src.fy+' loaded from '+file.name+' (manual)';
+      if (M.areas.length) msg+=' — '+M.saRows+' Sales Areas, '+M.mapped.length+' mapped'+(M.unmapped.length?(', '+M.unmapped.length+' UNMAPPED (see Data Quality)'):'');
+      toast(msg, (M.unmapped.length||M.missing.length||M.invalid.length)?'bad':'');
     }, 30);
-  };
-  fr.onerror=function(){ busy(false); toast('Could not read the AOP file.','bad'); };
-  fr.readAsArrayBuffer(file);
+  }, function(e){ busy(false); toast(e.message||'Could not read the AOP file.','bad'); });
 }
 function wireAop(){
   on('up-aop','change', function(e){ if (e.target.files && e.target.files[0]) readAopExcel(e.target.files[0]); e.target.value=''; });
   document.addEventListener('click', function(e){
     var b=e.target.closest('[data-aop]'); if (!b || b.disabled) return;
     if (b.dataset.aop==='pick') document.getElementById('up-aop').click();
+    else if (b.dataset.aop==='repo') loadRepoAop();
     else if (b.dataset.aop==='clear'){
-      if (!confirm('Remove the stored AOP targets from this browser? The sales data is not affected.')) return;
-      aopClearStore().then(function(){ AOP.src=null; aopAfterChange(); toast('AOP cleared — AOP comparison now shows "AOP not loaded".'); });
+      AOPS.manualSrc=null; AOPS.off=true; aopApply();
+      toast('AOP cleared for this session — AOP comparison shows "AOP not loaded". Use Load Repository AOP or Upload AOP to bring it back.');
     }
   });
   ['ldz-aop','dz-aop'].forEach(function(id){
@@ -4804,7 +5170,7 @@ function wireAop(){
 function aboutAopHtml(){
   var bc=P?aopBasis('cum'):null, bm=P?aopBasis('month'):null;
   return '<h4>13. AOP comparison ('+AOP_FY+')</h4>'+
-  '<p>The AOP file holds the <b>full-year</b> '+AOP_FY+' AOP for each Sales Area and product. It is read in the browser, validated, stored on this machine (separately from the sales files) and restored automatically. <b>AOP is distributed equally across the 12 months of the FY</b> &mdash; calendar days are never used.</p>'+
+  '<p>The AOP file holds the <b>full-year</b> '+AOP_FY+' AOP for each Sales Area and product. It is optional: the dashboard reads <code>data/AOP_2026-27.xlsx</code> from the repository when it is there, and a file uploaded through <b>Data Source</b> overrides it for the session. It is validated in the browser and never stored or uploaded. <b>AOP is distributed equally across the 12 months of the FY</b> &mdash; calendar days are never used.</p>'+
   '<table class="fx"><tr><th>Measure</th><th>Formula</th></tr>'+
   '<tr><td><b>1. Monthly AOP</b></td><td><code>Monthly AOP = Annual FY AOP / 12</code> &mdash; the <b>full</b> monthly target, even when actual data is available only up to a partial date in that month</td></tr>'+
   '<tr><td><b>2. Cumulative AOP</b></td><td><code>Cumulative AOP = Annual FY AOP &times; Months Covered / 12</code> &mdash; months covered = every FY month the selected period touches, each counted as a whole month (including the full current month)</td></tr>'+
@@ -4829,9 +5195,9 @@ function on(id, ev, fn){ var e=document.getElementById(id); if(e) e.addEventList
 function wireLoaders(){
   /* GitHub build: no manual upload — data comes from the repository */
   on('hdr-load','click', openDataSource);
-  on('repo-reload','click', function(){ loadRepository(true); });
+  on('repo-reload','click', function(){ loadRepository(); });
   on('repo-manual','click', openDataSource);
-  on('ld-retry-btn','click', function(){ loadRepository(APP_READY); });
+  on('ld-retry-btn','click', function(){ loadRepository(); });
   wireManual();
 }
 
@@ -4987,9 +5353,11 @@ function boot(){
     /* sales data: ALWAYS fetched fresh from the repository; any dataset left
        in browser storage by the old upload version is deleted, never used.
        (The optional AOP target file keeps its own browser storage.)         */
+    /* AOP: repository file or a manual upload for this session — an AOP left
+       in browser storage by the older version is removed, never restored */
     purgeStoredSales()
-      .then(function(){ return aopRestore().catch(function(){}); })
-      .then(function(){ return loadRepository(false); });
+      .then(function(){ return aopClearStore().catch(function(){}); })
+      .then(function(){ updateAopUI(); return loadRepository(); });
   }catch(err){
     document.body.insertAdjacentHTML('afterbegin','<div class="note err" style="margin:20px">Startup error: '+esc(err.message)+'</div>');
     console.error(err);
