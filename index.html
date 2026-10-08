@@ -661,12 +661,12 @@ ul.tight li{margin:2px 0}
   <div class="modal-b">
     <div class="ds-sec"><h4>Current source</h4><div id="ds-cur"></div>
       <div class="man-btns" style="justify-content:flex-start"><button class="btn pri" id="ds-repo">&#8635; Reload Repository Data</button></div>
-      <div class="man-n" style="text-align:left">Repository: <code>data/FY_2025-26.xlsx</code> &amp; <code>data/FY_2026-27.xlsx</code> next to this page, fetched fresh (cache-busted) each time.</div></div>
+      <div class="man-n" style="text-align:left">Repository files next to this page &mdash; Historical: <code>data/FY_2025-26.xlsx</code> &middot; Current: <code>data/FY_2026-27.xlsx</code> &mdash; fetched fresh (cache-busted) each time.</div></div>
     <div class="ds-sec"><div id="ds-manual-host"></div></div>
   </div>
 </div></div>
-<input type="file" id="man-up-0" accept=".xlsx,.xls,.xlsm,.csv" hidden>
-<input type="file" id="man-up-1" accept=".xlsx,.xls,.xlsm,.csv" hidden>
+<input type="file" id="man-up-0" accept=".xlsx,.XLSX,.xls,.XLS,.xlsm,.csv" hidden>
+<input type="file" id="man-up-1" accept=".xlsx,.XLSX,.xls,.XLS,.xlsm,.csv" hidden>
 
 <div class="overlay" id="ov"><div class="box" id="ov-t">Working&hellip;</div></div>
 <div class="toast" id="toast"></div>
@@ -3837,13 +3837,25 @@ function showLoadError(err, mode){
   setManualOpen(true);
 }
 function pause(ms){ return new Promise(function(r){ setTimeout(r, ms||30); }); }
+/* Canonical name is ALWAYS the lowercase .xlsx path.  GitHub Pages is case-
+   sensitive, so if (and only if) that returns 404 the loader also tries the
+   same name with an upper-case .XLSX extension, in case the file was
+   committed that way.  rf.usedPath records which one was actually read.    */
 function fetchRepoFile(rf, cacheBust){
-  var url=rf.path+cacheBust;                       // relative to index.html — never "/data/…"
+  var alt=rf.path.replace(/\.xlsx$/,'.XLSX');
   var miss=function(extra){ return RepoError('Unable to load '+rf.file+' from the repository.'+(extra?' ('+extra+')':''),
-                                         'Please verify that the Excel file exists in: <code>'+rf.path+'</code>'); };
-  return fetch(url, {cache:'no-store'}).then(function(r){
-    if (!r.ok) throw miss('HTTP '+r.status);
-    return r.arrayBuffer();
+                                         'Expected path: <code>'+rf.path+'</code>'); };
+  var get=function(path){ return fetch(path+cacheBust, {cache:'no-store'}); };   // relative to index.html — never "/data/…"
+  rf.usedPath=rf.path;
+  return get(rf.path).then(function(r){
+    if (r.ok) return r.arrayBuffer();
+    if (r.status!==404 || alt===rf.path) throw miss('HTTP '+r.status);
+    return get(alt).then(function(r2){
+      if (!r2.ok) throw miss('HTTP 404');
+      rf.usedPath=alt;
+      console.warn('Loaded '+alt+' — please rename it to '+rf.path+' (the standard lowercase name).');
+      return r2.arrayBuffer();
+    }, function(){ throw miss('HTTP 404'); });
   }, function(e){ throw miss(e && e.message); });
 }
 function readLocalFile(file){
@@ -3883,7 +3895,7 @@ function loadData(mode, isReload){
       var src=parseFYWorkbook(bufs[sl], rfs[sl]);
       var other=FYSRC[1-sl]; if (other) other.areas=src.areas;   // shared Sales Area list
       FYSRC[sl]=src;
-      REPO_STATE.files[sl]={file:rfs[sl].file, path:rfs[sl].path, bytes:bufs[sl].byteLength, manual:!!rfs[sl].manual};
+      REPO_STATE.files[sl]={file:rfs[sl].file, path:rfs[sl].path, usedPath:rfs[sl].usedPath||rfs[sl].path, bytes:bufs[sl].byteLength, manual:!!rfs[sl].manual};
     });
     bufs=[null,null];
     ldStep(2,'ok', nfmt(FYSRC[0].fs.rows+FYSRC[1].fs.rows,0)+' rows'); ldStep(3,'run');
@@ -4093,7 +4105,8 @@ function renderRepoStatus(){
     var s=FYSRC[sl], rf=REPO_FILES[sl];
     if (!s) return row(FY_DEF[sl].name, '<span class="badv">Not loaded</span> &mdash; <code>'+rf.path+'</code>');
     var ex=s.fs.beforeFY+s.fs.afterFY+s.fs.missingDate, f=REPO_STATE.files[sl];
-    return row(FY_DEF[sl].name, '<span class="okv">&#10003; Loaded</span> &mdash; <code>'+esc(f&&f.manual?f.file:rf.path)+'</code>'+(f?' ('+nfmt(f.bytes/1048576,2)+' MB)':'')+
+    var upNote = (f && !f.manual && f.usedPath && f.usedPath!==rf.path) ? ' <span style="color:#a05a00">&middot; found as <code>'+esc(f.usedPath)+'</code> &mdash; please rename it to <code>'+rf.path+'</code></span>' : '';
+    return row(FY_DEF[sl].name, '<span class="okv">&#10003; Loaded</span> &mdash; <code>'+esc(f&&f.manual?f.file:rf.path)+'</code>'+(f?' ('+nfmt(f.bytes/1048576,2)+' MB)':'')+upNote+
       '<br>'+nfmt(s.fs.rows,0)+' rows read &middot; '+nfmt(s.fs.inFY,0)+' used in '+s.name+' &middot; billing '+fmtDate(pISO(s.minDate))+' to '+fmtDate(pISO(s.maxDate))+
       (ex?' &middot; <span style="color:#a05a00">'+nfmt(ex,0)+' outside '+s.name+' / undated, excluded</span>':''));
   };
@@ -4282,7 +4295,8 @@ function renderAbout(){
   document.getElementById('about-host').innerHTML =
   '<div class="card"><div class="card-h"><h3>Data Source</h3><span class="hint">GitHub repository</span></div><div class="card-b">'+
   '<p>This dashboard reads the following files directly from the GitHub repository:</p><ul class="tight">'+
-  '<li><code>data/FY_2025-26.xlsx</code> &mdash; Historical FY</li><li><code>data/FY_2026-27.xlsx</code> &mdash; Current FY till date</li></ul>'+
+  '<li>Historical: <code>data/FY_2025-26.xlsx</code> &mdash; Historical FY</li><li>Current: <code>data/FY_2026-27.xlsx</code> &mdash; Current FY till date</li></ul>'+
+  '<p>Use these exact names with a lowercase <code>.xlsx</code> extension (GitHub Pages is case-sensitive). As a safeguard, a file committed as <code>.XLSX</code> is still found, and the Data Quality tab then asks for it to be renamed.</p>'+
   '<p>If the repository files cannot be reached (for example when <code>index.html</code> is opened directly from a computer), the two Excel files can be selected manually instead &mdash; <b>Data Source</b> in the header, or the load screen. Manually selected files go through exactly the same processing and are used for the current session only.</p>'+
   '<p>The Excel files are the authoritative data source for the dashboard. The dashboard processes the files locally in the user&rsquo;s browser. No sales data is uploaded to an external server by the dashboard.</p>'+
   '<p>Both files are fetched on every page load with a cache-busting timestamp (<code>?v=&hellip;</code>), using paths relative to this page, so a replaced file is picked up immediately and the same <code>index.html</code> works under any repository name. Processed sales data is never saved in, or restored from, browser storage. The latest valid Billing Date in the current-year file sets the default To Date (currently <b>'+fmtDate(Cc._maxT)+'</b>).</p>'+
