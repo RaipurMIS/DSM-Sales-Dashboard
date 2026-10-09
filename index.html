@@ -140,6 +140,20 @@ th.b-apr.grp{border-top:2px solid #138a96}
 .story .card-b{padding:12px 14px 14px}
 .st-verdict{background:var(--hp-blue-tint2);border:1px solid #cfe0f2;border-left:4px solid var(--hp-blue-600);border-radius:6px;padding:8px 12px;font-size:13px;line-height:1.55;color:var(--ink);margin-bottom:12px}
 .st-verdict div+div{margin-top:2px}
+.st-verdict h4,.st-sig h4,.st-list h4{font-size:11px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--hp-blue-700);margin:0 0 4px}
+.st-ins{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.st-ins .st-verdict{margin-bottom:0}
+@media(max-width:1150px){.st-ins{grid-template-columns:1fr}}
+.st-month{background:#f4faf6;border-color:#cde7d7;border-left-color:#2e9e62}
+.st-month h4{color:#1f6f45}
+.st-sig{margin-top:10px}
+table.st-tbl.sig td,table.st-tbl.sig th{padding:4px 6px}
+.mom{display:inline-block;font-size:11px;font-weight:750;border-radius:10px;padding:1px 8px;line-height:16px}
+.mom.ms-str{background:#d9f0e2;color:#0d5a30}
+.mom.ms-imp{background:#e8f6ee;color:#1f7a47}
+.mom.ms-stb{background:#e9eef5;color:#3d4b5e}
+.mom.ms-mod{background:#fdf1dc;color:#8a5300}
+.mom.ms-att{background:#fbe7d4;color:#9a4100}
 .st-grid{display:grid;grid-template-columns:minmax(0,46fr) minmax(0,54fr);gap:16px;align-items:start}
 @media(max-width:1150px){.st-grid{grid-template-columns:1fr}}
 table.st-tbl{border-collapse:collapse;width:100%;font-size:12.5px;font-variant-numeric:tabular-nums}
@@ -148,9 +162,9 @@ table.st-tbl td{padding:5px 6px;border-bottom:1px solid var(--line2);text-align:
 table.st-tbl .sa{text-align:left;font-weight:650}
 table.st-tbl td.rk{font-weight:700}
 table.st-tbl td.sp{background:var(--greenbg2);color:#0d5a30;font-weight:600}
-table.st-tbl td.sn{background:var(--redbg2);color:#8e1b15;font-weight:600}
+table.st-tbl td.sn{background:#fdf3e7;color:#9a4b00;font-weight:600}
 table.st-tbl td.best{font-weight:800;box-shadow:inset 0 0 0 2px #2e9e62}
-table.st-tbl td.worst{font-weight:800;box-shadow:inset 0 0 0 2px #d0453f}
+table.st-tbl td.worst{font-weight:800;box-shadow:inset 0 0 0 2px #d99a2b}
 table.st-tbl tr.reg td{background:#fff8c9;font-weight:700;border-top:2px solid #8a94a3}
 .st-note{font-size:10.5px;color:var(--grey);margin-top:5px;line-height:1.4}
 .st-peer{margin-top:10px;border-top:1px solid var(--line2);padding-top:8px}
@@ -161,8 +175,8 @@ table.st-tbl tr.reg td{background:#fff8c9;font-weight:700;border-top:2px solid #
 .st-list .it{display:flex;gap:8px;padding:5px 0;border-bottom:1px dashed var(--line2);font-size:12.5px;line-height:1.5;color:var(--ink)}
 .st-list .it:last-child{border-bottom:0}
 .st-list .ic{flex:0 0 20px;font-size:15px;line-height:1.35}
-.st-call{margin-top:12px;background:#fff5f5;border:1px solid #f3cdcd;border-left:4px solid var(--hp-red);border-radius:6px;padding:8px 12px;font-size:13px;line-height:1.55;color:var(--navy);font-weight:600}
-.story .up{color:#0d5a30;font-weight:700} .story .dn{color:#a3191b;font-weight:700}
+.st-call{margin-top:12px;background:#fffaf0;border:1px solid #f0dfb8;border-left:4px solid #d99a2b;border-radius:6px;padding:8px 12px;font-size:13px;line-height:1.55;color:var(--navy);font-weight:600}
+.story .up{color:#0d5a30;font-weight:700} .story .dn{color:#9a4b00;font-weight:700}
 /* ---------- DSM MIS tables: fit one screen (no horizontal scroll) ---------- */
 #mis-host table.mis{font-size:11.5px}
 #mis-host table.mis th,#mis-host table.mis td{padding:3px 4px}
@@ -2053,29 +2067,76 @@ function sAbsKL(v){ return nfmt(Math.abs(Math.round(v)),0)+' KL'; }
 function sPP(x){ return nfmt(Math.abs(x),1)+' pp'; }
 function sB(t){ return '<b>'+t+'</b>'; }
 
+/* ---- momentum: YTD / selected period vs current month (like-for-like) ----
+   y = selected-period growth, m = "For The Month" growth (P.A.curMonth vs
+   P.A.histMonth: month-to-date vs the same days last year, or the complete
+   month vs the complete month).  Thresholds keep tiny moves "Stable":
+   T = gap between month and YTD that counts as a change of momentum
+       (2 pp for growth %, 0.5 pp for Power conversion — same 2 pp the story
+       already used for month-vs-YTD), F = band treated as "flat".          */
+var MOM_T = 2, MOM_T_PP = 0.5, MOM_F = 1, MOM_F_PP = 0.3;
+var MOM_CLS = { 'Strengthening':'ms-str', 'Improving':'ms-imp', 'Stable':'ms-stb', 'Moderating':'ms-mod', 'Needs Attention':'ms-att' };
+function momentum(y, m, pp){
+  if (y===null||y===undefined||!isFinite(y)||m===null||m===undefined||!isFinite(m)) return null;
+  var T=pp?MOM_T_PP:MOM_T, F=pp?MOM_F_PP:MOM_F, d=m-y;
+  if (d>=T)  return y>F ? 'Strengthening' : 'Improving';
+  if (d<=-T) return (y>F || m>=-F) ? 'Moderating' : 'Needs Attention';   // still positive YTD → moderating
+  if (m<-F && y<-F) return 'Needs Attention';
+  return 'Stable';
+}
+/* one interpretive sentence for a product (the seven YTD × month cases) */
+function momentumSentence(lbl, y, m, pp, ytd){
+  if (y===null||y===undefined||!isFinite(y)) return '';
+  var g=function(v){ return sGr(v,pp); }, T=pp?MOM_T_PP:MOM_T, F=pp?MOM_F_PP:MOM_F;
+  if (m===null||m===undefined||!isFinite(m)) return sB(lbl)+' is '+g(y)+' '+ytd+'; there is no like-for-like current-month comparison yet.';
+  var d=m-y, yP=y>F, yN=y<-F, mP=m>F, mN=m<-F;
+  if (!yP && !yN && mP && d>=T) return sB(lbl)+' '+ytd+' performance is broadly stable ('+g(y)+'), while the current month is showing encouraging momentum ('+g(m)+').';
+  if (yP && mP){
+    if (d>=T)  return sB(lbl)+': current-month momentum ('+g(m)+') is strengthening the overall '+ytd+' trajectory ('+g(y)+').';
+    if (d<=-T) return 'Overall '+ytd+' '+sB(lbl)+' performance remains positive ('+g(y)+'), although current-month momentum has moderated ('+g(m)+').';
+    return sB(lbl)+' continues to show healthy momentum ('+g(y)+' '+ytd+'), with the current month also tracking ahead of the corresponding period last year ('+g(m)+').';
+  }
+  if (yP && mN)  return 'While '+ytd+' '+sB(lbl)+' remains ahead of last year ('+g(y)+'), current-month momentum has softened ('+g(m)+') and merits closer attention.';
+  if (yP)        return sB(lbl)+' remains positive '+ytd+' ('+g(y)+'), with the current month broadly in line with last year ('+g(m)+')'+(d<=-T?' — momentum has moderated.':'.');
+  if (yN && mP)  return sB(lbl)+' '+ytd+' remains below last year’s level ('+g(y)+'), although the current month is showing encouraging improvement ('+g(m)+').';
+  if (yN && mN)  return sB(lbl)+' remains below last year’s trajectory ('+g(y)+' '+ytd+'), with the current month also showing softer momentum ('+g(m)+') — an opportunity for focused recovery.';
+  if (yN)        return sB(lbl)+' '+ytd+' remains below last year ('+g(y)+'); the current month is broadly in line with last year ('+g(m)+'), suggesting the trend is stabilising.';
+  if (mN)        return sB(lbl)+' '+ytd+' is broadly stable ('+g(y)+'), while current-month momentum is softer ('+g(m)+') and worth monitoring.';
+  if (mP)        return sB(lbl)+' '+ytd+' is broadly stable ('+g(y)+'), with the current month modestly ahead of last year ('+g(m)+').';
+  return sB(lbl)+' is broadly in line with last year, both '+ytd+' ('+g(y)+') and in the current month ('+g(m)+').';
+}
+function names(arr){ return arr.length<2 ? arr.join('') : arr.slice(0,-1).join(', ')+' and '+arr[arr.length-1]; }
+function trendWord(g, F){ F=F||MOM_F; return g===null ? null : g>F ? 'pos' : g<-F ? 'neg' : 'flat'; }
+
 function buildStory(){
   var areas=visibleAreas(), regGet=storyRegionGetter();
   var reg={ f:storyFacts(regGet) };
   var all=areas.map(function(r){ return {label:sLbl(r.label), f:storyFacts(function(k,c){ return areaVal(P.A[k],r.ai,c); }), rk:{}}; });
   var act=all.filter(function(s){ var f=s.f; return f.MS.cur||f.MS.hist||f.HSD.cur||f.HSD.hist||f.LU.cur||f.LU.hist||f.PW.cur||f.PW.hist; });
   var ytd = P.fyStartSel ? 'YTD' : 'in the period';
+  var YL  = P.fyStartSel ? 'YTD' : 'Period';
   var mon = P.monLabel, span = P.aprSpan, hspan = P.aprHistLbl;
   var monthDiffers = !(P.mA===P.cFrom && P.mB===P.cTo);
   var closed = P.remDays<=0, nextMon = P.cm.i<11 ? monthBounds(DB.fy[1],P.cm.i+1).short : 'the next FY';
   var when = closed ? 'in '+nextMon : 'before '+mon+' closes';
   var single = act.length===1 || areas.length===1;
+  var scope = ST.sa==='ALL' ? 'Raipur Region' : sLbl(DB.areaLabels[DB.areas.indexOf(ST.sa)])+' SA';
+  var monKind = P.monthIsFull ? 'complete month' : 'month to date';
   var S = {
     single:single,
-    title: (ST.sa==='ALL' ? 'Raipur Region' : sLbl(DB.areaLabels[DB.areas.indexOf(ST.sa)])+' SA')+' — Performance Story',
-    sub: 'MS · HSD · Power · Lube   |   '+rangeShort(P.cFrom,P.cTo)+' vs '+rangeShort(P.hFrom,P.hTo),
+    title: scope+' — Performance Story',
+    sub: 'MS · HSD · Power · Lube   |   '+YL+' '+rangeShort(P.cFrom,P.cTo)+' vs '+rangeShort(P.hFrom,P.hTo)+'   |   Month '+P.monthRange+' vs '+P.hMonthRange,
     filters: [ST.city&&ST.city!=='ALL'?'MRN Location / City: '+ST.city:'', ST.ct!=='ALL'?'Customer Type: '+ST.ct:'', ST.q?'Search: "'+ST.q+'"':''].filter(Boolean).join('  •  '),
     basis: 'Growth vs last year, '+(P.fyStartSel?'YTD':'selected period')+'. Power Con = change in conversion % (pp).'+
-           (areas.length>1 ? ' Rank weights: MS 35% · HSD 35% · Power Vol 10% · Power Con 10% · Lube 10%. Green box = best in column, red box = worst.' : ''),
-    verdict:[], board:{rows:[], reg:null}, peer:[], stories:[], call:[]
+           (areas.length>1 ? ' Rank weights: MS 35% · HSD 35% · Power Vol 10% · Power Con 10% · Lube 10%. Green outline = leading in the column, amber outline = focus area.' : ''),
+    monthNote: monthDiffers ? 'Month = '+P.monthRange+' vs '+P.hMonthRange+' ('+monKind+', like-for-like days). Momentum compares the month with the '+YL+' growth: Strengthening / Improving = month ahead of '+YL+' by ≥2 pp (0.5 pp for Power Con); Moderating / Needs Attention = behind by ≥2 pp; otherwise Stable.'
+                            : 'The selected period is the current month itself, so the month and '+YL+' figures are the same.',
+    ytdLbl: YL, monLbl: mon+(P.monthIsFull?'':' MTD'),
+    verdict:[], traj:[], month:[], signals:[], board:{rows:[], reg:null}, peer:[], stories:[], call:[]
   };
-  if (!act.length){ S.verdict.push('No MS, HSD, Power or Lube volume under the current filters.'); return S; }
+  if (!act.length){ S.traj.push('No MS, HSD, Power or Lube volume under the current filters.'); S.verdict=S.traj; return S; }
 
-  /* -------- per-product ranks + weighted overall rank -------- */
+  /* -------- per-product ranks + weighted overall rank (unchanged) -------- */
   var n=act.length, best={}, worst={};
   STORY_PRODS.forEach(function(p){
     var arr=act.filter(function(s){ return s.f[p.k].gr!==null; }).sort(function(a,b){ return b.f[p.k].gr-a.f[p.k].gr; });
@@ -2088,19 +2149,16 @@ function buildStory(){
     s.pos=STORY_PRODS.filter(function(p){ return r1(s.f[p.k].gr)>0; }).length;
     s.neg=STORY_PRODS.filter(function(p){ var v=r1(s.f[p.k].gr); return v!==null && v<0; }).length;
     s.above=STORY_PRODS.filter(function(p){ return s.f[p.k].gr!==null && reg.f[p.k].gr!==null && s.f[p.k].gr>=reg.f[p.k].gr; }).length;
-    s.lastIn=STORY_PRODS.filter(function(p){ return worst[p.k]===s.label; }).length;
-    s.firstIn=STORY_PRODS.filter(function(p){ return best[p.k]===s.label; }).length;
-    // strongest / weakest product relative to the Region
     var gaps=STORY_PRODS.filter(function(p){ return s.f[p.k].gr!==null && reg.f[p.k].gr!==null; })
       .map(function(p){ return {p:p, g:s.f[p.k].gr-reg.f[p.k].gr}; }).sort(function(a,b){ return b.g-a.g; });
     s.strong=gaps[0]||null; s.weak=gaps[gaps.length-1]||null;
-    s.allAbove=gaps.length>0 && gaps.every(function(x){ return x.g>=0; });
-    s.allBelow=gaps.length>0 && gaps.every(function(x){ return x.g<0; });
-    if (s.strong && s.strong.g<0.5) s.strong=null;         // ignore gaps too small to matter
+    if (s.strong && s.strong.g<0.5) s.strong=null;
     if (s.weak && s.weak.g>-0.5) s.weak=null;
-    // volume lost vs Region pace (MS + HSD): what it would have sold growing at the Region rate
+    // performance gap vs the Region pace (MS + HSD)
     s.cost=0;
     ['MS','HSD'].forEach(function(k){ var rg=reg.f[k].gr; if (rg!==null){ var exp=s.f[k].hist*(1+rg/100); if (exp>s.f[k].cur) s.cost+=exp-s.f[k].cur; } });
+    // current-month momentum of MS / HSD for this SA
+    s.mom={}; ['FUEL','MS','HSD'].forEach(function(k){ s.mom[k]=momentum(s.f[k].gr, s.f[k].mGr, false); });
   });
   act.sort(function(a,b){ return a.score-b.score || ((b.f.MS.gr||-1e9)-(a.f.MS.gr||-1e9)); });
   act.forEach(function(s,i){ s.rank=i+1; });
@@ -2113,56 +2171,104 @@ function buildStory(){
                   pos:STORY_PRODS.filter(function(p){ return r1(reg.f[p.k].gr)>0; }).length};
 
   var R=reg.f;
+  /* the facts the narrative is about: the selected scope (Region, or the one SA) */
+  var X = single ? act[0].f : R;
+  var xName = single ? act[0].label : scope;
+
+  /* ================= Key product signals (YTD | Month | Momentum) ================= */
+  STORY_PRODS.forEach(function(p){
+    var f=X[p.k], y=f.gr, m=monthDiffers ? f.mGr : f.gr;
+    S.signals.push({lbl:p.lbl, y:y, m:m, pp:!!p.conv, mom: monthDiffers ? momentum(y,m,!!p.conv) : (y===null?null:'Stable')});
+  });
+
+  /* ================= Overall trajectory ================= */
+  var fg=X.FUEL.gr, tw=trendWord(fg);
+  var prodList='MS '+sGr(X.MS.gr)+', HSD '+sGr(X.HSD.gr)+', Power Vol '+sGr(X.PW.gr)+', Lube '+sGr(X.LU.gr)+' and Power conversion '+sGr(X.CONV.gr,true);
+  S.traj.push(sB(xName)+' MS+HSD is '+(tw==='pos'?'tracking ahead of last year':tw==='neg'?'currently tracking below last year’s trajectory':'broadly in line with last year')+
+              ' ('+sGr(fg)+' '+ytd+') — '+prodList+'.');
+  var lead=STORY_PRODS.filter(function(p){ return trendWord(X[p.k].gr, p.conv?MOM_F_PP:MOM_F)==='pos'; }).map(function(p){ return p.lbl; });
+  var soft=STORY_PRODS.filter(function(p){ return trendWord(X[p.k].gr, p.conv?MOM_F_PP:MOM_F)==='neg'; }).map(function(p){ return p.lbl; });
+  if (lead.length && soft.length) S.traj.push('Positive momentum is led by '+sB(names(lead))+', while '+sB(names(soft))+' '+(soft.length>1?'are':'is')+' currently softer and '+(soft.length>1?'offer':'offers')+' the clearest growth opportunity.');
+  else if (lead.length) S.traj.push(lead.length===STORY_PRODS.length ? 'All five measures are ahead of last year — a broad-based positive trajectory.' : 'Growth is led by '+sB(names(lead))+'; the remaining measures are broadly in line with last year.');
+  else if (soft.length) S.traj.push(sB(names(soft))+' '+(soft.length>1?'are':'is')+' currently tracking below last year, representing an opportunity to strengthen momentum through focused market actions.');
+  if (single){
+    var s0=act[0], rg=R.FUEL.gr;
+    if (fg!==null && rg!==null){
+      var dd=fg-rg;
+      S.traj.push(Math.abs(dd)<0.5 ? 'This is broadly in line with the regional trajectory (Region '+sGr(rg)+').'
+                : dd>0 ? 'This is '+sB(sPP(dd)+' ahead of')+' the regional trajectory (Region '+sGr(rg)+').'
+                       : 'Current performance is '+sB(sPP(dd)+' below')+' the regional trend (Region '+sGr(rg)+'), indicating scope to improve.');
+    }
+  } else {
+    var sup=act.filter(function(s){ return s.f.FUEL.vol>0; }).sort(function(a,b){ return b.f.FUEL.vol-a.f.FUEL.vol; }).slice(0,2);
+    var scopeSA=act.filter(function(s){ return s.f.FUEL.gr!==null && R.FUEL.gr!==null && s.f.FUEL.gr<R.FUEL.gr-0.5; }).sort(function(a,b){ return a.f.FUEL.gr-b.f.FUEL.gr; }).slice(0,1);
+    var both=act.filter(function(s){ return s.f.MS.gr>0 && s.f.HSD.gr>0; }).length;
+    var t3 = sup.length ? 'MS+HSD growth is being supported by '+sB(names(sup.map(function(s){ return s.label; })))+' ('+names(sup.map(function(s){ return sKL(s.f.FUEL.vol); }))+')' : 'No Sales Area is currently ahead of last year in MS+HSD volume';
+    if (scopeSA.length && sup.indexOf(scopeSA[0])<0) t3+=', while '+sB(scopeSA[0].label)+' has scope to strengthen its trajectory ('+sGr(scopeSA[0].f.FUEL.gr)+').';
+    else t3+='.';
+    S.traj.push(t3+' '+(both===n ? 'All '+n+' Sales Areas are growing in both MS and HSD.' : both===0 ? 'No Sales Area is yet growing in both MS and HSD, so fuel growth is a shared opportunity across the Region.' : sB(both+' of '+n)+' Sales Areas are growing in both MS and HSD.'));
+  }
+
+  /* ================= Current month momentum ================= */
+  if (!monthDiffers){
+    S.month.push('The selected period is '+sB(P.monthRange)+' itself, compared like-for-like with '+P.hMonthRange+' — current-month momentum is the trajectory described above.');
+  } else {
+    var fm=X.FUEL.mGr, fk=momentum(fg, fm, false);
+    var lead2 = fm===null ? '' : (fm>MOM_F ? 'is tracking ahead of the corresponding period last year' : fm<-MOM_F ? 'is currently tracking below the corresponding period last year' : 'is broadly in line with the corresponding period last year');
+    S.month.push(sB(mon+(P.monthIsFull?'':' (month to date)'))+' MS+HSD '+lead2+' ('+sGr(fm)+' vs '+P.hMonthRange+')'+
+      (fk==='Strengthening'?' — momentum is strengthening versus the '+YL+' trend.':fk==='Improving'?' — an encouraging improvement on the '+YL+' trend.':
+       fk==='Moderating'?' — momentum has moderated versus the '+YL+' trend.':fk==='Needs Attention'?' — momentum is softer than the '+YL+' trend and merits attention.':' — consistent with the '+YL+' trend.'));
+    // the MS and HSD stories (seven YTD × month cases)
+    ['MS','HSD'].forEach(function(k){ var t=momentumSentence(k, X[k].gr, X[k].mGr, false, ytd); if (t) S.month.push(t); });
+    // other products, summarised by momentum
+    var grp={};
+    S.signals.forEach(function(sg){ if (sg.lbl==='MS'||sg.lbl==='HSD'||!sg.mom) return; (grp[sg.mom]=grp[sg.mom]||[]).push(sg.lbl); });
+    var bits=[]; ['Strengthening','Improving','Stable','Moderating','Needs Attention'].forEach(function(k){ if (grp[k]) bits.push(names(grp[k])+' '+(k==='Needs Attention'?'needs attention':k.toLowerCase())); });
+    if (bits.length) S.month.push('Other measures this month: '+bits.join('; ')+'.');
+    if (!single){
+      var mOrd=act.filter(function(s){ return s.f.FUEL.mGr!==null; }).sort(function(a,b){ return b.f.FUEL.mGr-a.f.FUEL.mGr; });
+      if (mOrd.length>1){
+        var topM=mOrd.filter(function(s){ return s.f.FUEL.mGr>MOM_F; }).slice(0,2), lowM=mOrd[mOrd.length-1];
+        var t=topM.length ? 'This month '+sB(names(topM.map(function(s){ return s.label; })))+' '+(topM.length>1?'are':'is')+' showing the strongest MS+HSD momentum ('+names(topM.map(function(s){ return sGr(s.f.FUEL.mGr); }))+')' : 'No Sales Area is yet ahead of the corresponding period last year in MS+HSD this month';
+        if (topM.indexOf(lowM)<0 && fm!==null && lowM.f.FUEL.mGr<fm-0.5) t+=', while '+sB(lowM.label)+' has scope to improve current-month momentum ('+sGr(lowM.f.FUEL.mGr)+').';
+        else t+='.';
+        S.month.push(t);
+      }
+    }
+  }
+  S.verdict=S.traj;      // compatibility
+
   /* ================= single Sales Area ================= */
   if (single){
-    var s=act[0], f=s.f, fg=f.FUEL.gr, rg=R.FUEL.gr;
-    S.verdict.push(sB(s.label)+' is above last year in '+sB(s.pos+' of 5')+' measures and at or above the Region in '+sB(s.above+' of 5')+'.');
-    if (fg!==null && rg!==null) S.verdict.push('MS+HSD '+sGr(fg)+' '+ytd+' vs Region '+sGr(rg)+' — '+sB(sPP(fg-rg)+(fg>=rg?' ahead of':' behind'))+' the regional trajectory.');
+    var s=act[0], f=s.f, rg2=R.FUEL.gr;
     STORY_PRODS.forEach(function(p){
       var k=p.k, mine=f[k].gr, oth;
       if (p.conv){ var oc=storyConv(R.PW.cur-f.PW.cur, R.MS.cur-f.MS.cur), oh=storyConv(R.PW.hist-f.PW.hist, R.MS.hist-f.MS.hist); oth=(oc===null||oh===null)?null:oc-oh; }
       else oth=growth(R[k].cur-f[k].cur, R[k].hist-f[k].hist);
       if (r1(mine)===null || r1(oth)===null) return;
       var g=function(v){ return sGr(v,p.conv); }, m=r1(mine), o=r1(oth), icon, t;
-      if (m<0 && o>0){ icon='👎'; t=sB(p.lbl+':')+' the other SAs grew '+g(oth)+' — '+s.label+' went backwards ('+g(mine)+').'; }
-      else if (m<o && o<=0){ icon='🔻'; t=sB(p.lbl+':')+' the other SAs are down too ('+g(oth)+'), but '+s.label+' is falling much faster ('+g(mine)+').'; }
-      else if (m<o){ icon='🐢'; t=sB(p.lbl+':')+' '+s.label+' '+g(mine)+' vs other SAs '+g(oth)+' — '+sB('left '+sPP(mine-oth)+' behind')+'.'; }
-      else { icon='✅'; t=sB(p.lbl+':')+' '+s.label+' '+g(mine)+' vs other SAs '+g(oth)+' — ahead of the pack.'; }
+      if (m<0 && o>0){ icon='📌'; t=sB(p.lbl+':')+' the other SAs are at '+g(oth)+' while '+s.label+' is currently below last year ('+g(mine)+') — an opportunity to strengthen '+p.lbl+'.'; }
+      else if (m<o && o<=0){ icon='🔎'; t=sB(p.lbl+':')+' the wider market is also below last year ('+g(oth)+'); '+s.label+' ('+g(mine)+') has scope to narrow the gap.'; }
+      else if (m<o){ icon='🌱'; t=sB(p.lbl+':')+' '+s.label+' '+g(mine)+' vs other SAs '+g(oth)+' — '+sB(sPP(mine-oth)+' below')+' the peer trend, with scope to improve.'; }
+      else { icon='✅'; t=sB(p.lbl+':')+' '+s.label+' '+g(mine)+' vs other SAs '+g(oth)+' — leading momentum.'; }
       S.peer.push({icon:icon, text:t});
     });
-    if (s.cost>=1) S.stories.push({icon:'💸', text:'At Region growth it would have sold '+sB(sAbsKL(s.cost))+' more MS+HSD '+ytd+' — volume left on the table.'});
-    if (monthDiffers && f.FUEL.mGr!==null && fg!==null && Math.abs(f.FUEL.mGr-fg)>=2)
-      S.stories.push({icon:f.FUEL.mGr>fg?'📈':'📉', text:mon+' MS+HSD '+sGr(f.FUEL.mGr)+' vs '+sGr(fg)+' '+ytd+' — '+(f.FUEL.mGr>fg?'recovering.':'losing momentum.')});
-    if (f.FUEL.aprVol<0) S.stories.push({icon:'⏳', text:span+' MS+HSD is '+sB(sAbsKL(f.FUEL.aprVol))+' short of last year’s complete '+hspan+'.'});
-    else S.stories.push({icon:'✅', text:'Already '+sKL(f.FUEL.aprVol)+' ahead of last year’s complete '+hspan+' in MS+HSD.'});
-    var wk=s.weak?s.weak.p.lbl:'the weakest product';
-    S.call.push('🎯 '+sB('Priority:')+' '+(f.FUEL.aprVol<0 ? 'Recover the '+sAbsKL(f.FUEL.aprVol)+' '+span+' MS+HSD gap '+when+' and fix '+wk+'.'
-                 : (fg!==null&&rg!==null&&fg<rg ? 'Close the '+sPP(fg-rg)+' gap to the Region — start with '+wk+'.' : 'Hold the lead — protect the cushion and lift '+wk+'.')));
+    if (s.cost>=1) S.stories.push({icon:'📐', text:'At the Region’s growth rate, MS+HSD would be '+sB(sAbsKL(s.cost))+' higher '+ytd+' — a performance gap that represents an opportunity for incremental recovery.'});
+    if (f.FUEL.aprVol<0) S.stories.push({icon:'📅', text:sB('FY context:')+' '+span+' MS+HSD is '+sB(sAbsKL(f.FUEL.aprVol))+' short of last year’s complete '+hspan+(closed?'.':' — an opportunity for recovery '+when+'.')});
+    else S.stories.push({icon:'📅', text:sB('FY context:')+' already '+sKL(f.FUEL.aprVol)+' ahead of last year’s complete '+hspan+' in MS+HSD.'});
+    var wk=s.weak?s.weak.p.lbl:(s.mom.HSD==='Moderating'||s.mom.HSD==='Needs Attention'?'HSD':(s.mom.MS==='Moderating'||s.mom.MS==='Needs Attention'?'MS':null));
+    S.call.push('🎯 '+sB('Focus:')+' '+(f.FUEL.aprVol<0 ? 'Narrowing the '+sAbsKL(f.FUEL.aprVol)+' '+span+' MS+HSD performance gap to last year’s complete '+hspan+(closed?'':' '+when)+' is the priority opportunity'+(wk?', with '+wk+' the key lever.':'.')
+                 : (fg!==null&&rg2!==null&&fg<rg2 ? 'A '+sPP(fg-rg2)+' performance gap to the regional trajectory offers scope to improve'+(wk?' — '+wk+' is the key opportunity.':'.')
+                                              : 'Maintain the positive momentum'+(wk?' and build further on '+wk+'.':'.'))));
     return S;
   }
 
   /* ================= several Sales Areas ================= */
   var leader=act[0], last=act[n-1];
-  // verdict 1 — Region in one line
-  S.verdict.push('Region: MS '+sGr(R.MS.gr)+', HSD '+sGr(R.HSD.gr)+', Power '+sGr(R.PW.gr)+', Lube '+sGr(R.LU.gr)+', Power conversion '+sGr(R.CONV.gr,true)+' '+ytd+'.');
-  // verdict 2 — breadth
-  var both=act.filter(function(s){ return s.f.MS.gr>0 && s.f.HSD.gr>0; }).length;
-  S.verdict.push(both===n ? 'All '+n+' Sales Areas are growing in both MS and HSD.' :
-                 both===0 ? sB('Not a single Sales Area')+' is growing in both MS and HSD.' :
-                 'Only '+sB(both+' of '+n)+' Sales Areas are growing in both MS and HSD.');
-  // verdict 3 — one SA's loss cancelling another's gain (MS+HSD)
-  var byVol=act.slice().sort(function(a,b){ return b.f.FUEL.vol-a.f.FUEL.vol; }), gain=byVol[0], loss=byVol[n-1];
-  if (gain.f.FUEL.vol>0 && loss.f.FUEL.vol<0){
-    var pct=-loss.f.FUEL.vol/gain.f.FUEL.vol*100;
-    S.verdict.push(pct>=100 ? sB(loss.label)+'’s MS+HSD loss ('+sKL(loss.f.FUEL.vol)+') is bigger than '+sB(gain.label)+'’s entire gain ('+sKL(gain.f.FUEL.vol)+').'
-                            : sB(loss.label)+'’s MS+HSD loss ('+sKL(loss.f.FUEL.vol)+') wipes out '+sB(nfmt(pct,0)+'%')+' of '+sB(gain.label)+'’s gain ('+sKL(gain.f.FUEL.vol)+').');
-  }
 
-  /* ---- PEER CHECK: each product, each SA judged against the other SAs ---- */
+  /* ---- product view across Sales Areas ---- */
   function peerAvg(s, k){ var o=act.filter(function(x){ return x!==s && x.f[k].gr!==null; }); if (!o.length) return null;
     return o.reduce(function(a,x){ return a+x.f[k].gr; },0)/o.length; }
-  function names(arr){ return arr.length<2 ? arr.join('') : arr.slice(0,-1).join(', ')+' and '+arr[arr.length-1]; }
-  function stall(s,k){ return r1(s.f[k].gr)<0 ? 'going backwards' : 'standing still'; }
   STORY_PRODS.forEach(function(p){
     var k=p.k, L=act.filter(function(s){ return r1(s.f[k].gr)!==null; }), N=L.length;
     if (N<2) return;
@@ -2170,73 +2276,82 @@ function buildStory(){
     var up=L.filter(function(s){ return r1(s.f[k].gr)>0; }), notUp=L.filter(function(s){ return !(r1(s.f[k].gr)>0); });
     var srt=L.slice().sort(function(a,b){ return b.f[k].gr-a.f[k].gr; }), top=srt[0], bot=srt[N-1], pa=peerAvg(bot,k);
     var icon, t, nm=sB(p.lbl+':');
-    if (L.every(function(s){ return r1(s.f[k].gr)===0; })) return;      // flat everywhere — nothing to say
+    if (L.every(function(s){ return r1(s.f[k].gr)===0; })) return;
     if (notUp.length===1){
-      var o=notUp[0]; icon='👎';
-      t=nm+' Every SA grew except '+sB(o.label)+' ('+g(o.f[k].gr)+'). '+(N-1)+' peers moved forward — '+o.label+' is the only one '+stall(o,k)+'.';
+      var o=notUp[0]; icon='🎯';
+      t=nm+' every other Sales Area is growing; '+sB(o.label)+' is currently '+(r1(o.f[k].gr)<0?'below':'level with')+' last year ('+g(o.f[k].gr)+') — a focused opportunity to strengthen '+p.lbl+'.';
     } else if (up.length===1){
-      icon='🔻';
-      t=nm+' Falling almost everywhere — '+(N-1)+' of '+N+' SAs are down or flat. Only '+sB(up[0].label)+' grew ('+g(up[0].f[k].gr)+'). Worst: '+sB(bot.label)+' ('+g(bot.f[k].gr)+').';
+      icon='🔎';
+      t=nm+' growth is currently concentrated in '+sB(up[0].label)+' ('+g(up[0].f[k].gr)+'); '+(N-1)+' of '+N+' SAs are at or below last year, with '+sB(bot.label)+' ('+g(bot.f[k].gr)+') offering the largest recovery opportunity.';
     } else if (notUp.length===0){
-      var ratio=(pa!==null && pa>0) ? bot.f[k].gr/pa : null;
-      var desc= ratio===null ? 'below' : ratio<0.34 ? 'less than a third of' : ratio<0.5 ? 'less than half of' : ratio<0.8 ? 'well below' : 'just behind';
-      icon='🐢';
-      t=nm+' All '+N+' SAs grew, but '+sB(bot.label)+' managed only '+g(bot.f[k].gr)+' — '+desc+' its peers’ average ('+g(pa)+'). Slowest in the Region; '+top.label+' leads at '+g(top.f[k].gr)+'.';
+      icon='✅';
+      t=nm+' all '+N+' SAs are growing. '+sB(top.label)+' shows leading momentum ('+g(top.f[k].gr)+') and is a useful benchmark; '+sB(bot.label)+' ('+g(bot.f[k].gr)+') has the most scope to accelerate.';
     } else if (up.length===0){
-      icon='🔴';
-      t=nm+' Nobody grew. Worst hit: '+sB(bot.label)+' ('+g(bot.f[k].gr)+'), '+sB(sPP(bot.f[k].gr-pa)+' worse')+' than its peers. Least bad: '+top.label+' ('+g(top.f[k].gr)+').';
+      icon='📌';
+      t=nm+' all SAs are currently at or below last year — a region-wide growth opportunity. '+top.label+' is the most resilient ('+g(top.f[k].gr)+'); '+sB(bot.label)+' ('+g(bot.f[k].gr)+') has the largest performance gap.';
     } else {
-      icon='⚠️';
-      t=nm+' Only '+up.length+' of '+N+' SAs grew. '+names(notUp.slice().sort(function(a,b){ return a.f[k].gr-b.f[k].gr; }).map(function(s){ return sB(s.label)+' ('+g(s.f[k].gr)+')'; }))+' are going backwards. '+
-        sB(bot.label)+' is the worst — '+sB(sPP(bot.f[k].gr-pa)+' behind')+' its peers.';
+      icon='🌱';
+      t=nm+' '+up.length+' of '+N+' SAs are growing. '+names(notUp.slice().sort(function(a,b){ return a.f[k].gr-b.f[k].gr; }).map(function(s){ return sB(s.label)+' ('+g(s.f[k].gr)+')'; }))+
+        (notUp.length>1?' are':' is')+' currently below last year, with '+sB(bot.label)+' showing the largest gap to peers ('+sPP(bot.f[k].gr-pa)+').';
     }
     S.peer.push({icon:icon, text:t});
   });
 
-  /* ---- one plain, blunt line per SA, judged against its peers ---- */
+  /* ---- Sales Area focus: trajectory + current-month momentum + opportunity ---- */
   act.forEach(function(s){
     var f=s.f, parts=[], others=act.filter(function(x){ return x!==s; });
     var oc=0, oh=0; others.forEach(function(x){ oc+=x.f.FUEL.cur; oh+=x.f.FUEL.hist; });
-    var pg=growth(oc,oh), fg=f.FUEL.gr;
-    var icon = s.rank===1 ? '🏆' : (s.rank===n ? '🔴' : ((fg!==null&&pg!==null&&fg>=pg)?'🟢':'⚠️'));
-    var worstIn=STORY_PRODS.filter(function(p){ return worst[p.k]===s.label; }).map(function(p){ return p.lbl; });
+    var pg=growth(oc,oh), sg=f.FUEL.gr, rg3=R.FUEL.gr, sm=f.FUEL.mGr;
+    var dRel=(sg!==null&&rg3!==null)?sg-rg3:null;
     var bestIn =STORY_PRODS.filter(function(p){ return best[p.k]===s.label; }).map(function(p){ return p.lbl; });
     var gaps=STORY_PRODS.map(function(p){ var pa=peerAvg(s,p.k); return (f[p.k].gr===null||pa===null)?null:{p:p, pa:pa, g:f[p.k].gr-pa}; })
                         .filter(Boolean).sort(function(a,b){ return a.g-b.g; });
-    var behind=gaps.filter(function(x){ return x.g<0; }).length, wg=gaps[0];
-    s.peerWeak = (wg && wg.g<0) ? wg.p.lbl : null;
-    if (s.rank===1){
-      parts.push(sB('No. 1 of '+n+'.')+(bestIn.length?' Best of all SAs in '+names(bestIn)+' — the rest are chasing it.':' Ahead of the pack overall.'));
-      if (worstIn.length) parts.push('But it is the '+sB('worst of all SAs in '+names(worstIn))+' — no room to relax.');
-    } else {
-      parts.push(sB(s.rank===n ? 'Bottom of the table.' : 'Rank '+s.rank+' of '+n+'.')+
-        (worstIn.length ? ' '+sB('Worst of all '+n+' SAs in '+names(worstIn))+'.' : '')+
-        (behind ? ' Behind its peers in '+sB(behind+' of '+gaps.length)+'.' : ' Ahead of the peer average in every measure — yet still not No. 1.'));
-      if (wg && wg.g<=-0.5)
-        parts.push(wg.p.lbl+' '+sGr(f[wg.p.k].gr,wg.p.conv)+' while the other SAs average '+sGr(wg.pa,wg.p.conv)+' — '+sB(sPP(wg.g)+' behind')+'.');
+    var wg=gaps[0]; s.peerWeak=(wg && wg.g<0) ? wg.p.lbl : null;
+    // 1 — overall trajectory, relative to the Region
+    var traj;
+    if (dRel===null) traj='Rank '+s.rank+' of '+n+'.';
+    else if (dRel>=0.5) traj=(sg>MOM_F?'Positive overall trajectory':'Tracking ahead of the regional trend')+', with MS+HSD '+sGr(sg)+' '+ytd+' vs Region '+sGr(rg3)+'.';
+    else if (dRel>-0.5) traj='Broadly in line with the regional trajectory (MS+HSD '+sGr(sg)+' '+ytd+').';
+    else traj=(sg>MOM_F?'Positive, though currently below the regional trend':'Currently showing softer '+YL+' performance')+' (MS+HSD '+sGr(sg)+' vs Region '+sGr(rg3)+').';
+    parts.push(sB('Rank '+s.rank+' of '+n+'.')+' '+traj);
+    // 2 — current month
+    if (monthDiffers && sm!==null){
+      var mk=s.mom.FUEL, prodFocus=null;
+      ['HSD','MS'].forEach(function(k){ if (!prodFocus && (s.mom[k]==='Moderating'||s.mom[k]==='Needs Attention')) prodFocus=k; });
+      var below=dRel!==null && dRel<=-0.5;
+      if (mk==='Strengthening' || mk==='Improving')
+        parts.push(below ? 'Current-month MS+HSD momentum has improved ('+sGr(sm)+'), indicating early signs of recovery.'
+                         : 'Current-month momentum is also encouraging ('+sGr(sm)+'), suggesting continued strength.');
+      else if (mk==='Moderating' || mk==='Needs Attention')
+        parts.push('Current-month momentum has '+(mk==='Moderating'?'moderated':'softened')+' ('+sGr(sm)+')'+(prodFocus?'; '+prodFocus+' ('+sGr(f[prodFocus].mGr)+' this month) could be a useful focus area for the coming weeks.':' and merits attention in the coming weeks.'));
+      else parts.push('Current-month momentum is consistent with the '+YL+' trend ('+sGr(sm)+')'+(prodFocus?', although '+prodFocus+' has moderated this month ('+sGr(f[prodFocus].mGr)+').':'.'));
     }
-    if (fg!==null && pg!==null && fg<pg){
-      var lost=f.FUEL.hist*(1+pg/100)-f.FUEL.cur;
-      if (lost>=1) parts.push('Had it grown like its peers ('+sGr(pg)+'), it would have sold '+sB(sAbsKL(lost))+' more MS+HSD.');
+    // 3 — benchmark or opportunity
+    if (bestIn.length) parts.push('Leading performance in '+names(bestIn)+' — a useful benchmark for other Sales Areas.');
+    else if (wg && wg.g<=-0.5) parts.push(wg.p.lbl+' offers the main improvement opportunity ('+sGr(f[wg.p.k].gr,wg.p.conv)+' vs peers '+sGr(wg.pa,wg.p.conv)+').');
+    // 4 — performance gap vs peers
+    if (sg!==null && pg!==null && sg<pg){
+      var gap=f.FUEL.hist*(1+pg/100)-f.FUEL.cur;
+      if (gap>=1 && parts.length<4) parts.push('At the peers’ growth rate ('+sGr(pg)+') this is a '+sB(sAbsKL(gap))+' MS+HSD performance gap — an opportunity for incremental recovery.');
     }
-    if (monthDiffers && f.FUEL.mGr!==null && fg!==null && Math.abs(f.FUEL.mGr-fg)>=2)
-      parts.push(f.FUEL.mGr<fg ? mon+' is even worse than its '+ytd+' ('+sGr(f.FUEL.mGr)+' vs '+sGr(fg)+' in MS+HSD) — slipping further.'
-                                : mon+' is better ('+sGr(f.FUEL.mGr)+' vs '+sGr(fg)+' '+ytd+' in MS+HSD) — finally moving.');
-    if (s.rank===n && f.FUEL.aprVol<0) parts.push('Still '+sB(sAbsKL(f.FUEL.aprVol))+' short of last year’s complete '+hspan+' in MS+HSD.');
+    var icon = s.rank===1 ? '🌟' : (dRel===null ? '🔹' : dRel>=0.5 ? '🟢' : dRel>-0.5 ? '🔹' : '🎯');
     S.stories.push({icon:icon, label:s.label, text:parts.slice(0,4).join(' ')});
   });
 
-  // call — what the laggards cost the Region, then the priority
+  // suggested focus + FY context
   var drags=act.filter(function(s){ return s.f.FUEL.gr!==null && R.FUEL.gr!==null && s.f.FUEL.gr<R.FUEL.gr; })
                .sort(function(a,b){ return a.f.FUEL.gr-b.f.FUEL.gr; }).slice(0,2);
   if (drags.length && drags.length<n){
     var dc=0, dh=0; drags.forEach(function(d){ dc+=d.f.FUEL.cur; dh+=d.f.FUEL.hist; });
     var without=growth(R.FUEL.cur-dc, R.FUEL.hist-dh);
-    if (without!==null) S.call.push('Without '+drags.map(function(d){ return sB(d.label); }).join(' and ')+', Region MS+HSD would be '+sGr(without)+' instead of '+sGr(R.FUEL.gr)+'.');
+    if (without!==null) S.call.push('📊 Excluding '+drags.map(function(d){ return sB(d.label); }).join(' and ')+', Region MS+HSD would be '+sGr(without)+' instead of '+sGr(R.FUEL.gr)+' — this is where focused support can lift the regional trajectory most.');
   }
-  var lw=last.peerWeak || (last.weak?last.weak.p.lbl:'its weakest product');
-  S.call.push('🎯 '+sB('Priority:')+' '+(last.f.FUEL.aprVol<0 ? 'Close '+last.label+'’s '+sAbsKL(last.f.FUEL.aprVol)+' '+span+' MS+HSD gap '+when : 'Lift '+last.label+' off the bottom')+
-              ', fix '+lw+', and replicate '+leader.label+'’s performance drivers.');
+  var lw=last.peerWeak || (last.weak?last.weak.p.lbl:null);
+  S.call.push('🎯 '+sB('Focus:')+' '+sB(last.label)+' currently has the greatest scope for improvement relative to the regional trajectory'+
+              (last.f.FUEL.aprVol<0 ? ' ('+sAbsKL(last.f.FUEL.aprVol)+' '+span+' MS+HSD gap to last year’s complete '+hspan+(closed?'':', with scope to narrow it '+when)+')' : '')+
+              (lw?'. '+lw+' offers the key improvement opportunity':'')+', while '+sB(leader.label)+'’s practices provide a useful benchmark.');
+  if (R.FUEL.aprVol!==null && isFinite(R.FUEL.aprVol))
+    S.call.push('📅 '+sB('FY context:')+' '+scope+' '+span+' MS+HSD is '+(R.FUEL.aprVol<0 ? sB(sAbsKL(R.FUEL.aprVol))+' short of' : sKL(R.FUEL.aprVol)+' ahead of')+' last year’s complete '+hspan+'.');
   return S;
 }
 
@@ -2244,7 +2359,15 @@ function buildStory(){
 function richHTML(s){ return String(s).replace(/<up>/g,'<span class="up">').replace(/<\/up>/g,'</span>').replace(/<dn>/g,'<span class="dn">').replace(/<\/dn>/g,'</span>'); }
 function storyCellTxt(c){ if (c.v===null||c.v===undefined||!isFinite(c.v)) return '—'; var r=Math.round(c.v*10)/10; return (r>0?'+':'')+nfmt(r===0?0:r,1)+(c.pp?' pp':'%'); }
 function r1(v){ return (v===null||v===undefined||!isFinite(v)) ? null : Math.round(v*10)/10; }
-function storyMedal(r){ return r===null ? '' : (r.rank===1?'🥇':r.rank===2?'🥈':r.rank===3?'🥉':(r.rank===r.n?'🔴':'')); }
+function storyMedal(r){ return r===null ? '' : (r.rank===1?'🥇':r.rank===2?'🥈':r.rank===3?'🥉':''); }
+function storyMomHTML(k){ return k ? '<span class="mom '+MOM_CLS[k]+'">'+k+'</span>' : '—'; }
+function storySigTable(S){
+  if (!S.signals.length) return '';
+  return '<div class="st-sig"><h4>Key product signals</h4><table class="st-tbl sig"><thead><tr><th class="sa">Product</th><th>'+esc(S.ytdLbl)+'</th><th>'+esc(S.monLbl)+'</th><th>Momentum</th></tr></thead><tbody>'+
+    S.signals.map(function(g){ var c=function(v){ var rv=r1(v); return rv===null||rv===0?'':(rv>0?'sp':'sn'); };
+      return '<tr><td class="sa">'+esc(g.lbl)+'</td><td class="'+c(g.y)+'">'+storyCellTxt({v:g.y,pp:g.pp})+'</td><td class="'+c(g.m)+'">'+storyCellTxt({v:g.m,pp:g.pp})+'</td><td>'+storyMomHTML(g.mom)+'</td></tr>'; }).join('')+
+    '</tbody></table><div class="st-note">'+esc(S.monthNote)+'</div></div>';
+}
 function renderStory(){
   var host=document.getElementById('mis-story'); if (!host) return;
   var S; try{ S=buildStory(); } catch(e){ console.error(e); host.innerHTML=''; STORY=null; return; }
@@ -2259,13 +2382,16 @@ function renderStory(){
   S.board.rows.forEach(function(r){ tb+=row(r,''); });
   if (S.board.reg) tb+=row({rank:null,label:S.board.reg.label,cells:S.board.reg.cells,pos:S.board.reg.pos},'reg');
   tb+='</tbody></table>';
-  host.innerHTML='<div class="card story"><div class="card-h"><h3>Performance Story</h3><span class="hint">MS · HSD · Power Vol · Power Con · Lube — one view to share</span>'+
+  host.innerHTML='<div class="card story"><div class="card-h"><h3>Performance Story</h3><span class="hint">'+esc(S.ytdLbl)+' trajectory &amp; current-month momentum &mdash; MS · HSD · Power Vol · Power Con · Lube</span>'+
     '<div class="tools"><button class="btn sm" id="story-jpg">&#128247; Download JPG (WhatsApp)</button><button class="btn sm" id="story-copy">&#128203; Copy image</button></div></div>'+
     '<div class="card-b">'+
-      '<div class="st-verdict">'+S.verdict.map(function(v){ return '<div>'+richHTML(v)+'</div>'; }).join('')+'</div>'+
-      '<div class="st-grid"><div>'+(S.board.rows.length?tb:'')+'<div class="st-note">'+esc(S.basis)+'</div>'+
-        (S.peer.length?'<div class="st-peer"><h4>Peer check — product by product</h4>'+S.peer.map(function(x){ return '<div class="it"><span class="ic">'+x.icon+'</span><div>'+richHTML(x.text)+'</div></div>'; }).join('')+'</div>':'')+'</div>'+
-      '<div class="st-list">'+S.stories.map(function(s){ return '<div class="it"><span class="ic">'+s.icon+'</span><div>'+(s.label?'<b>'+esc(s.label)+'</b> — ':'')+richHTML(s.text)+'</div></div>'; }).join('')+'</div></div>'+
+      '<div class="st-ins">'+
+        '<div class="st-verdict"><h4>Overall trajectory &mdash; '+esc(S.ytdLbl)+'</h4>'+S.traj.map(function(v){ return '<div>'+richHTML(v)+'</div>'; }).join('')+'</div>'+
+        (S.month.length?'<div class="st-verdict st-month"><h4>Current month momentum &mdash; '+esc(S.monLbl)+'</h4>'+S.month.map(function(v){ return '<div>'+richHTML(v)+'</div>'; }).join('')+'</div>':'')+
+      '</div>'+
+      '<div class="st-grid"><div>'+(S.board.rows.length?tb:'')+'<div class="st-note">'+esc(S.basis)+'</div>'+storySigTable(S)+
+        (S.peer.length?'<div class="st-peer"><h4>Product view &mdash; across Sales Areas</h4>'+S.peer.map(function(x){ return '<div class="it"><span class="ic">'+x.icon+'</span><div>'+richHTML(x.text)+'</div></div>'; }).join('')+'</div>':'')+'</div>'+
+      '<div class="st-list"><h4>'+(S.single?'Context':'Sales Area focus')+'</h4>'+S.stories.map(function(s){ return '<div class="it"><span class="ic">'+s.icon+'</span><div>'+(s.label?'<b>'+esc(s.label)+'</b> — ':'')+richHTML(s.text)+'</div></div>'; }).join('')+'</div></div>'+
       (S.call.length?'<div class="st-call">'+S.call.map(function(c){ return '<div>'+richHTML(c)+'</div>'; }).join('')+'</div>':'')+
     '</div></div>';
   document.getElementById('story-jpg').onclick=function(){ storyExport('jpg'); };
@@ -2278,7 +2404,7 @@ function paintStory(S){
   var cv=document.createElement('canvas'); cv.width=W*SC; cv.height=H0*SC;
   var g=cv.getContext('2d'); g.scale(SC,SC); g.textBaseline='alphabetic';
   g.fillStyle='#ffffff'; g.fillRect(0,0,W,H0);
-  var COL={'':'#16202e', b:'#0b2d5c', up:'#0d6b3a', dn:'#b0191c'};
+  var COL={'':'#16202e', b:'#0b2d5c', up:'#0d6b3a', dn:'#9a4b00'};
   function font(sz,wt){ g.font=(wt||400)+' '+sz+'px '+FF; }
   function segs(r){ var out=[], re=/<(b|up|dn)>([\s\S]*?)<\/\1>/g, last=0, m;
     while((m=re.exec(r))){ if(m.index>last) out.push({t:r.slice(last,m.index),s:''}); out.push({t:m[2],s:m[1]}); last=re.lastIndex; }
@@ -2303,18 +2429,45 @@ function paintStory(S){
   // header band
   rect(0,0,W,104,'#003876'); rect(0,104,W,6,'#e01f26');
   font(29,700); g.fillStyle='#ffffff'; g.fillText(S.title, PAD, 50);
-  font(16,500); g.fillStyle='#cfe0f5'; g.fillText(S.sub, PAD, 82);
+  var subSz=16; font(subSz,500); while (subSz>10 && g.measureText(S.sub).width>W-2*PAD){ subSz-=0.5; font(subSz,500); }
+  g.fillStyle='#cfe0f5'; g.fillText(S.sub, PAD, 82);
   var y=136;
   if (S.filters){ font(13,500); g.fillStyle='#6b7280'; g.fillText('Filters: '+S.filters, PAD, y); y+=24; }
 
   function section(t){ font(15,700); g.fillStyle='#0057a5'; g.fillText(t, PAD, y+15); y+=28; }
 
-  // verdict box
-  section('The verdict');
-  var vh=0, VW=W-2*PAD-32; S.verdict.forEach(function(v){ vh+=rich(v,0,0,VW,17,26,400,null,true)+6; });
-  rect(PAD,y,W-2*PAD,vh+20,'#eef4fb'); rect(PAD,y,5,vh+20,'#0057a5');
-  var yy=y+10; S.verdict.forEach(function(v){ yy+=rich(v,PAD+20,yy,VW,17,26,400,null,false)+6; });
-  y+=vh+40;
+  // overall trajectory + current month boxes
+  function box(title, lines, bg, bar){
+    if (!lines.length) return;
+    section(title);
+    var vh=0, VW=W-2*PAD-32; lines.forEach(function(v){ vh+=rich(v,0,0,VW,17,26,400,null,true)+6; });
+    rect(PAD,y,W-2*PAD,vh+20,bg); rect(PAD,y,5,vh+20,bar);
+    var yy=y+10; lines.forEach(function(v){ yy+=rich(v,PAD+20,yy,VW,17,26,400,null,false)+6; });
+    y+=vh+40;
+  }
+  box('Overall trajectory — '+S.ytdLbl, S.traj, '#eef4fb', '#0057a5');
+  box('Current month momentum — '+S.monLbl, S.month, '#f1f9f4', '#2e9e62');
+  // key product signals
+  if (S.signals.length){
+    section('Key product signals');
+    var SC2=[{t:'Product',w:300,al:'l'},{t:S.ytdLbl,w:200,al:'c'},{t:S.monLbl,w:200,al:'c'},{t:'Momentum',w:W-2*PAD-700,al:'c'}], RH2=38;
+    rect(PAD,y,W-2*PAD,RH2,'#003876'); var sx=PAD; font(15,700); g.fillStyle='#ffffff';
+    SC2.forEach(function(c){ g.textAlign=c.al==='l'?'left':'center'; g.fillText(c.t, c.al==='l'?sx+10:sx+c.w/2, y+25); sx+=c.w; });
+    g.textAlign='left'; y+=RH2;
+    var MC={'Strengthening':['#d9f0e2','#0d5a30'],'Improving':['#e8f6ee','#1f7a47'],'Stable':['#e9eef5','#3d4b5e'],'Moderating':['#fdf1dc','#8a5300'],'Needs Attention':['#fbe7d4','#9a4100']};
+    S.signals.forEach(function(sg){
+      rect(PAD,y,W-2*PAD,RH2,'#ffffff'); var x=PAD;
+      [{t:sg.lbl,al:'l',b:true},{t:storyCellTxt({v:sg.y,pp:sg.pp}),v:sg.y,al:'c'},{t:storyCellTxt({v:sg.m,pp:sg.pp}),v:sg.m,al:'c'},{t:sg.mom||'—',mom:sg.mom,al:'c'}].forEach(function(c,i){
+        var w=SC2[i].w, rv=c.v!==undefined?r1(c.v):null;
+        if (rv) rect(x+1,y+1,w-2,RH2-2, rv>0?'#dff2e6':'#fdf3e7');
+        if (c.mom){ font(14,700); var tw2=g.measureText(c.t).width+24; rect(x+w/2-tw2/2,y+8,tw2,RH2-16,MC[c.mom][0]); g.fillStyle=MC[c.mom][1]; }
+        else { font(16,c.b?700:600); g.fillStyle= rv ? (rv>0?'#0d6b3a':'#9a4b00') : '#16202e'; }
+        g.textAlign=c.al==='l'?'left':'center'; g.fillText(c.t, c.al==='l'?x+10:x+w/2, y+25); x+=w;
+      });
+      g.textAlign='left'; rect(PAD,y+RH2-1,W-2*PAD,1,'#d5dde8'); y+=RH2;
+    });
+    y+=8; y+=rich(S.monthNote, PAD, y, W-2*PAD, 12.5, 18, 400, '#6b7280', false)+18;
+  }
 
   // scoreboard
   if (S.board.rows.length){
@@ -2337,10 +2490,10 @@ function paintStory(S){
       vals.forEach(function(v,i){
         var w=cols[i].w;
         var rv=v.c?r1(v.c.v):null;
-        if (rv) rect(x+1,y+1,w-2,RH-2, rv>0?'#dff2e6':'#fbe0de');
-        if (v.c && (v.c.best||v.c.worst)){ g.strokeStyle=v.c.best?'#1f8a50':'#c0221f'; g.lineWidth=2.5; g.strokeRect(x+3,y+3,w-6,RH-6); }
+        if (rv) rect(x+1,y+1,w-2,RH-2, rv>0?'#dff2e6':'#fdf3e7');
+        if (v.c && (v.c.best||v.c.worst)){ g.strokeStyle=v.c.best?'#1f8a50':'#d99a2b'; g.lineWidth=2.5; g.strokeRect(x+3,y+3,w-6,RH-6); }
         font(16, (v.b||isReg||(v.c&&(v.c.best||v.c.worst)))?700:500);
-        g.fillStyle = rv ? (rv>0?'#0d6b3a':'#b0191c') : '#16202e';
+        g.fillStyle = rv ? (rv>0?'#0d6b3a':'#9a4b00') : '#16202e';
         g.textAlign=v.al==='l'?'left':'center'; g.fillText(v.t, v.al==='l'?x+10:x+w/2, y+26);
         x+=w;
       });
@@ -2356,7 +2509,7 @@ function paintStory(S){
 
   // peer check
   if (S.peer.length){
-    section('Peer check — product by product');
+    section('Product view — across Sales Areas');
     S.peer.forEach(function(x){
       font(22,400); g.fillStyle='#16202e'; g.fillText(x.icon, PAD, y+24);
       var h=rich(x.text, PAD+40, y, W-2*PAD-40, 16.5, 25, 400, null, false);
@@ -2366,7 +2519,7 @@ function paintStory(S){
   }
   // stories
   if (S.stories.length){
-    section(S.single?'What the numbers say':'Sales Area by Sales Area — vs peers');
+    section(S.single?'Context':'Sales Area focus');
     S.stories.forEach(function(s){
       font(22,400); g.fillStyle='#16202e'; g.fillText(s.icon, PAD, y+24);
       var txt=(s.label?'<b>'+s.label+'</b> — ':'')+s.text;
@@ -2379,7 +2532,7 @@ function paintStory(S){
   // call box
   if (S.call.length){
     var ch=0, CW=W-2*PAD-32; S.call.forEach(function(c){ ch+=rich(c,0,0,CW,17,26,600,'#0b2d5c',true)+6; });
-    rect(PAD,y,W-2*PAD,ch+22,'#fff1f1'); rect(PAD,y,5,ch+22,'#e01f26');
+    rect(PAD,y,W-2*PAD,ch+22,'#fffaf0'); rect(PAD,y,5,ch+22,'#d99a2b');
     var cy=y+11; S.call.forEach(function(c){ cy+=rich(c,PAD+20,cy,CW,17,26,600,'#0b2d5c',false)+6; });
     y+=ch+40;
   }
